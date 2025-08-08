@@ -1,11 +1,22 @@
 import { Product } from "@/types/product";
 import ProductCard from "@/components/ProductCard";
-
+//https://svkrobotics.com/api/products/featured  απο εδω προσπαθω να παρω τα featured products αλλα δεν υπαρχει api
 async function getFeaturedProducts(): Promise<Product[]> {
-  const res = await fetch("http://localhost:3000/api/products/featured", {
-    cache: "no-store",
-  });
-  if (!res.ok) return [];
+  const res = await fetch(
+    `${process.env.NEXT_PUBLIC_BASE_URL}/api/products/featured`,
+    {
+      cache: "no-store",
+    }
+  );
+
+  const contentType = res.headers.get("content-type");
+
+  if (!res.ok || !contentType?.includes("application/json")) {
+    const errorText = await res.text(); // read HTML error
+    console.error("Invalid JSON response:", errorText);
+    return [];
+  }
+
   return res.json();
 }
 

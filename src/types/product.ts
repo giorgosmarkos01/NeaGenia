@@ -24,4 +24,7 @@ export interface Product {
   highlight: 0 | 1;
   created_at?: Date;
   updated_at?: Date;
+  images?: string[];
+  collaborator_name?: string;
+  category_name?: string;
 }

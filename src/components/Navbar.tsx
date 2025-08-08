@@ -46,18 +46,20 @@ export default function Navbar() {
         {/* Cart Icon */}
         <Link href="/cart" className="relative">
           <svg
-            className="w-6 h-6 text-gray-700 hover:text-blue-600"
+            className="w-6 h-6 text-gray-700 hover:text-blue-600 transition"
             fill="none"
             stroke="currentColor"
+            strokeWidth="1.5"
             viewBox="0 0 24 24"
             xmlns="http://www.w3.org/2000/svg"
           >
             <path
               strokeLinecap="round"
               strokeLinejoin="round"
-              strokeWidth={2}
-              d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2 9m13-9l2 9m-5-5a2 2 0 11-4 0 2 2 0 014 0z"
+              d="M2.25 3h1.5l1.664 12.177a1.5 1.5 0 001.49 1.323h10.132a1.5 1.5 0 001.49-1.323L20.25 6H6.75"
             />
+            <circle cx="9" cy="20" r="1.5" />
+            <circle cx="17" cy="20" r="1.5" />
           </svg>
           {cartCount > 0 && (
             <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full px-1.5">

@@ -6,13 +6,21 @@ interface ProductCardProps {
   product: Product;
 }
 
+const fallbackImage = "/logo.png"; // Adjust path if needed
+const baseUrl = "https://svkroboticsedu.com";
+
 export default function ProductCard({ product }: ProductCardProps) {
+  const imageUrl =
+    product.images && product.images.length > 0
+      ? baseUrl + product.images[0]
+      : fallbackImage;
+
   return (
-    <Link href={`/products/${product.id}`}>
-      <div className="bg-white rounded-xl shadow-md hover:shadow-lg transition transform hover:-translate-y-1 p-3 sm:p-4 relative flex flex-col cursor-pointer">
+    <Link href={`/products/${product.slug}`}>
+      <div className="bg-white rounded-xl transition transform p-3 sm:p-4 relative flex flex-col cursor-pointer">
         {/* Wishlist icon */}
         <button
-          onClick={(e) => e.preventDefault()} // prevents Link from triggering
+          onClick={(e) => e.preventDefault()}
           className="absolute top-2 right-2 sm:top-3 sm:right-3 p-1.5 sm:p-2 bg-white rounded-full shadow hover:scale-110 transition"
         >
           <svg
@@ -35,7 +43,7 @@ export default function ProductCard({ product }: ProductCardProps) {
         {/* Image */}
         <div className="w-full h-36 sm:h-44 flex items-center justify-center bg-gray-50 rounded-lg mb-3 sm:mb-4 overflow-hidden">
           <img
-            src="https://svkroboticsedu.com/uploads/items/2025-06-23-intelligence5-Photoroom.jpg"
+            src={imageUrl}
             alt={product.name}
             className="max-h-32 sm:max-h-40 object-contain transition-transform duration-300 ease-in-out hover:scale-110"
           />
