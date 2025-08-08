@@ -41,15 +41,15 @@ export default function HeroBanner() {
   }, []);
 
   return (
-    <section className="max-w-6xl mx-auto px-6 mt-8 overflow-hidden">
+    <section className="max-w-6xl mx-auto px-6 mt-8 overflow-hidden ">
       <div
-        className="flex transition-transform duration-700 ease-in-out"
-        style={{ transform: `translateX(-${currentSlide * 100}%)` }}
+        className="flex transition-transform duration-700 ease-in-out gap-8"
+        style={{ transform: `translateX(-${currentSlide * (100 + 2)}%)` }} // +2% για να καλύψει το gap
       >
         {slides.map((slide, index) => (
           <div
             key={index}
-            className="min-w-full bg-gray-100 rounded-2xl flex flex-col md:flex-row items-center justify-between p-8 md:p-12"
+            className="min-w-full bg-gray-100 rounded-2xl flex flex-col md:flex-row items-center justify-between p-12 md:p-20 shadow-lg"
           >
             {/* Left Side */}
             <div className="md:w-1/2 space-y-4">

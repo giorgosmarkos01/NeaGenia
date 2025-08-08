@@ -6,7 +6,7 @@ import Footer from "@/components/Footer";
 import HeroBanner from "@/components/HeroBanner";
 async function getProducts(): Promise<Product[]> {
   const res = await fetch(
-    "https://api.svkrobotics.com/api/items/category/all-items",
+    `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/items/category/all-items`,
     {
       cache: "no-store",
     }

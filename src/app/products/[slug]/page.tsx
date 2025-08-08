@@ -31,7 +31,7 @@ export default function ProductDetailsPage() {
     const fetchProduct = async () => {
       try {
         const res = await fetch(
-          `https://api.svkrobotics.com/api/items/${slug}`,
+          `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/items/${slug}`,
           {
             cache: "no-store",
           }
