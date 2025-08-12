@@ -2,13 +2,30 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
+import { useDispatch, useSelector } from "react-redux";
+import { setCart } from "@/store/cartSlice";
+import type { RootState } from "@/store/store";
 
 export default function Navbar() {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
-  const [cartCount, setCartCount] = useState(0); // dummy count (θα το κάνουμε dynamic αργότερα)
+
+  const dispatch = useDispatch();
+  const cartCount = useSelector((s: RootState) =>
+    s.cart.items.reduce((n, it) => n + it.qty, 0)
+  );
+
+  useEffect(() => {
+    (async () => {
+      const res = await fetch("/api/cart", { cache: "no-store" });
+      if (res.ok) {
+        const data = await res.json();
+        dispatch(setCart(data.items || []));
+      }
+    })();
+  }, [dispatch]);
 
   const links = [
     { href: "/", label: "Home" },
@@ -19,12 +36,10 @@ export default function Navbar() {
 
   return (
     <nav className="sticky top-0 z-50 bg-white shadow-md px-6 py-4 flex justify-between items-center">
-      {/* Logo */}
       <Link href="/" className="flex items-center space-x-2">
         <Image src="/logo.png" alt="Logo" width={80} height={40} />
       </Link>
 
-      {/* Desktop Menu */}
       <div className="hidden md:flex space-x-6 text-lg">
         {links.map((link) => (
           <Link
@@ -41,9 +56,7 @@ export default function Navbar() {
         ))}
       </div>
 
-      {/* Cart + Mobile Menu Button */}
       <div className="flex items-center space-x-4">
-        {/* Cart Icon */}
         <Link href="/cart" className="relative">
           <svg
             className="w-6 h-6 text-gray-700 hover:text-blue-600 transition"
@@ -51,7 +64,6 @@ export default function Navbar() {
             stroke="currentColor"
             strokeWidth="1.5"
             viewBox="0 0 24 24"
-            xmlns="http://www.w3.org/2000/svg"
           >
             <path
               strokeLinecap="round"
@@ -68,18 +80,15 @@ export default function Navbar() {
           )}
         </Link>
 
-        {/* Mobile Menu Button */}
         <button
           className="md:hidden text-gray-700"
           onClick={() => setIsOpen(!isOpen)}
         >
-          {/* Hamburger icon */}
           <svg
             className="w-6 h-6"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
-            xmlns="http://www.w3.org/2000/svg"
           >
             {isOpen ? (
               <path
@@ -100,7 +109,6 @@ export default function Navbar() {
         </button>
       </div>
 
-      {/* Mobile Dropdown Menu */}
       {isOpen && (
         <div className="absolute top-16 left-0 w-full bg-white shadow-md md:hidden">
           {links.map((link) => (
