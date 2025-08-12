@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import RemoveFromCartButton from "@/components/RemoveFromCartButton";
 
 const fallbackImage = "/logo.png";
 const baseUrl = "https://svkroboticsedu.com";
@@ -15,7 +16,6 @@ interface CartItem {
   qty: number;
   imageUrl?: string;
 }
-
 interface CartApiResponse {
   cartId: string | null;
   items: {
@@ -33,36 +33,29 @@ export default function CartPage() {
 
   const toMoney = (v: unknown) => Number.parseFloat(String(v ?? 0)) || 0;
 
+  function applyItems(rawItems: CartApiResponse["items"]) {
+    const fixed: CartItem[] = rawItems.map((it) => ({
+      productId: it.productId,
+      name: it.name,
+      price: toMoney(it.price),
+      qty: it.qty,
+      imageUrl: it.imageUrl
+        ? it.imageUrl.startsWith("/")
+          ? baseUrl + it.imageUrl
+          : it.imageUrl
+        : fallbackImage,
+    }));
+    setItems(fixed);
+    setTotal(fixed.reduce((sum, i) => sum + i.price * i.qty, 0));
+  }
+
   useEffect(() => {
-    async function fetchCart() {
-      try {
-        const res = await fetch("/api/cart", { cache: "no-store" });
-        if (!res.ok) return;
-
-        const data: CartApiResponse = await res.json();
-
-        const fixedItems: CartItem[] = data.items.map((it) => ({
-          ...it,
-          price: toMoney(it.price),
-          imageUrl: it.imageUrl
-            ? it.imageUrl.startsWith("/")
-              ? baseUrl + it.imageUrl
-              : it.imageUrl
-            : fallbackImage,
-        }));
-
-        setItems(fixedItems);
-
-        const sumTotal = fixedItems.reduce(
-          (sum: number, item: CartItem) => sum + item.price * item.qty,
-          0
-        );
-        setTotal(sumTotal);
-      } catch (err) {
-        console.error("Error loading cart", err);
-      }
-    }
-    fetchCart();
+    (async () => {
+      const res = await fetch("/api/cart/items", { cache: "no-store" }); // use the same route you DELETE
+      if (!res.ok) return;
+      const data: CartApiResponse = await res.json();
+      applyItems(data.items);
+    })();
   }, []);
 
   const shippingFee = 0;
@@ -93,8 +86,8 @@ export default function CartPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {items.map((it, idx) => (
-                    <tr key={idx} className="border-b">
+                  {items.map((it) => (
+                    <tr key={it.productId} className="border-b">
                       <td className="py-4 flex items-center space-x-4">
                         <img
                           src={it.imageUrl || fallbackImage}
@@ -103,14 +96,16 @@ export default function CartPage() {
                         />
                         <div>
                           <p className="text-black">{it.name}</p>
-                          <button className="text-sm text-orange-500 hover:underline">
-                            Remove
-                          </button>
+                          <RemoveFromCartButton
+                            productId={it.productId}
+                            onSync={(newItems) => applyItems(newItems)} // <-- refresh UI after delete
+                          />
                         </div>
                       </td>
                       <td>€ {it.price.toFixed(2)}</td>
                       <td>
                         <input
+                          readOnly
                           type="number"
                           value={it.qty}
                           min={1}
@@ -122,6 +117,7 @@ export default function CartPage() {
                   ))}
                 </tbody>
               </table>
+
               <Link
                 href="/products"
                 className="mt-4 inline-block text-orange-500 hover:underline"
