@@ -7,6 +7,7 @@ import Footer from "@/components/Footer";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import Breadcrumbs from "@/components/Breadcrumbs";
+import { titleCaseFromSlug } from "@/lib/titleCaseFromSlug";
 
 const fallbackImage = "/logo.png";
 const baseUrl = "https://svkroboticsedu.com";
@@ -63,8 +64,13 @@ export default function ProductDetailsPage() {
         items={[
           { label: "Home", href: "/" },
           { label: "Products", href: "/products" },
-          { label: product.name },
+          {
+            label: titleCaseFromSlug(product.category_name),
+            href: `/products?category=${product.category_name}`,
+          },
+          { label: product.name }, // current page, χωρίς href
         ]}
+        separator="/"
       />
       <div className="bg-white max-w-6xl mx-auto p-6 grid grid-cols-1 md:grid-cols-2 gap-8">
         {/* Left: Image Gallery */}

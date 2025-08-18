@@ -85,6 +85,7 @@ export default async function ProductsPage({ searchParams }: PageProps) {
                 ? [{ label: titleCaseFromSlug(activeCategory) }]
                 : []),
             ]}
+            separator="/"
           />
           <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 sm:gap-8">
             {products.length ? (
