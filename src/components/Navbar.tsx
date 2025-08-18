@@ -47,7 +47,7 @@ export default function Navbar() {
             href={link.href}
             className={`hover:underline ${
               pathname === link.href
-                ? "text-blue-600 font-semibold"
+                ? "text-orange-600 font-semibold"
                 : "text-gray-700"
             }`}
           >
@@ -59,7 +59,7 @@ export default function Navbar() {
       <div className="flex items-center space-x-4">
         <Link href="/cart" className="relative">
           <svg
-            className="w-6 h-6 text-gray-700 hover:text-blue-600 transition"
+            className="w-6 h-6 text-gray-700 hover:text-orange-600 transition"
             fill="none"
             stroke="currentColor"
             strokeWidth="1.5"
@@ -74,7 +74,7 @@ export default function Navbar() {
             <circle cx="17" cy="20" r="1.5" />
           </svg>
           {cartCount > 0 && (
-            <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full px-1.5">
+            <span className="absolute -top-2 -right-2 bg-orange-500 text-white text-xs rounded-full px-1.5">
               {cartCount}
             </span>
           )}

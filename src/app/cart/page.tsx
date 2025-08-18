@@ -96,10 +96,6 @@ export default function CartPage() {
                         />
                         <div>
                           <p className="text-black">{it.name}</p>
-                          <RemoveFromCartButton
-                            productId={it.productId}
-                            onSync={(newItems) => applyItems(newItems)} // <-- refresh UI after delete
-                          />
                         </div>
                       </td>
                       <td>€ {it.price.toFixed(2)}</td>
@@ -113,6 +109,12 @@ export default function CartPage() {
                         />
                       </td>
                       <td>€ {(it.price * it.qty).toFixed(2)}</td>
+                      <td>
+                        <RemoveFromCartButton
+                          productId={it.productId}
+                          onSync={(newItems) => applyItems(newItems)} // <-- refresh UI after delete
+                        />
+                      </td>
                     </tr>
                   ))}
                 </tbody>
