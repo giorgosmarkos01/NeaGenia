@@ -36,16 +36,15 @@ export default function Navbar() {
 
   return (
     <nav className="sticky top-0 z-50 bg-white shadow-md">
-      {/* Top row: grouped logo + desktop nav + search centered, cart + mobile burger right */}
-      <div className="px-4 sm:px-6 py-3 flex items-center justify-between">
-        <div className="flex items-center gap-6 mx-auto max-w-6xl w-full">
-          {/* Logo */}
-          <Link href="/" className="flex items-center space-x-2 shrink-0">
-            <Image src="/logo.png" alt="Logo" width={80} height={40} />
-          </Link>
+      <div className="px-4 sm:px-6 py-3 flex items-center justify-between gap-3">
+        {/* Left: Logo */}
+        <Link href="/" className="flex items-center space-x-2 shrink-0">
+          <Image src="/logo.png" alt="Logo" width={80} height={40} />
+        </Link>
 
-          {/* Desktop links */}
-          <div className="hidden md:flex items-center gap-6 text-lg">
+        {/* Center: Links (desktop only) */}
+        <div className="hidden md:flex flex-1 justify-center">
+          <div className="flex items-center gap-6 text-lg">
             {links.map((link) => (
               <Link
                 key={link.href}
@@ -60,15 +59,16 @@ export default function Navbar() {
               </Link>
             ))}
           </div>
-
-          {/* Desktop search */}
-          <div className="hidden md:block flex-1 max-w-l">
-            <SearchBar />
-          </div>
         </div>
 
-        {/* Cart + Mobile burger */}
-        <div className="flex items-center gap-4">
+        {/* Right: Search + Cart + Burger */}
+        <div className="flex items-center gap-3 flex-shrink-0">
+          {/* SearchBar with animated width */}
+          <div className="w-24 focus-within:w-40 md:w-48 md:focus-within:w-64 transition-all duration-300">
+            <SearchBar />
+          </div>
+
+          {/* Cart */}
           <Link href="/cart" className="relative">
             <svg
               className="w-6 h-6 text-gray-700 hover:text-orange-600 transition"
@@ -92,6 +92,7 @@ export default function Navbar() {
             )}
           </Link>
 
+          {/* Mobile burger */}
           <button
             className="md:hidden text-gray-700"
             onClick={() => setIsOpen((o) => !o)}
@@ -121,11 +122,6 @@ export default function Navbar() {
             </svg>
           </button>
         </div>
-      </div>
-
-      {/* Mobile search always visible under the top row */}
-      <div className="px-4 sm:px-6 pb-3 md:hidden">
-        <SearchBar />
       </div>
 
       {/* Mobile dropdown links */}

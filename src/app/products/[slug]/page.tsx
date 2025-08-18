@@ -1,10 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { notFound, useParams } from "next/navigation";
+import { useParams } from "next/navigation";
 import Navbar from "@/components/Navbar";
-import FeaturedProducts from "@/app/components/FeaturedProducts";
 import Footer from "@/components/Footer";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import Breadcrumbs from "@/components/Breadcrumbs";
 
 const fallbackImage = "/logo.png";
 const baseUrl = "https://svkroboticsedu.com";
@@ -32,16 +34,12 @@ export default function ProductDetailsPage() {
       try {
         const res = await fetch(
           `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/items/${slug}`,
-          {
-            cache: "no-store",
-          }
+          { cache: "no-store" }
         );
-
         if (!res.ok) {
           setProduct(null);
           return;
         }
-
         const data = await res.json();
         setProduct(data.item);
         setSelectedImage(
@@ -61,6 +59,13 @@ export default function ProductDetailsPage() {
   return (
     <>
       <Navbar />
+      <Breadcrumbs
+        items={[
+          { label: "Home", href: "/" },
+          { label: "Products", href: "/products" },
+          { label: product.name },
+        ]}
+      />
       <div className="bg-white max-w-6xl mx-auto p-6 grid grid-cols-1 md:grid-cols-2 gap-8">
         {/* Left: Image Gallery */}
         <div>
@@ -94,7 +99,7 @@ export default function ProductDetailsPage() {
 
         {/* Right: Info */}
         <div>
-          <h1 className="text-3xl font-bold mb-2">{product.name}</h1>
+          <h1 className="text-3xl font-bold mb-2 text-black">{product.name}</h1>
 
           {/* Rating */}
           <div className="flex items-center mb-4">
@@ -102,23 +107,26 @@ export default function ProductDetailsPage() {
             <span className="text-gray-600">(4.5)</span>
           </div>
 
-          {/* Description */}
-          <p className="text-gray-700 mb-6">
-            {product.description_full || product.description_short}
-          </p>
-
           {/* Price */}
           <div className="flex items-center space-x-3 mb-6">
-            <p className="text-3xl font-bold text-gray-900">
-              {product.price} €
-            </p>
-            <p className="text-lg text-gray-500 line-through">4199.99 €</p>
+            <p className="text-3xl font-bold text-black">{product.price} €</p>
+            {/* strike-through example (remove if not needed) */}
+            {/* <p className="text-lg text-gray-500 line-through">4199.99 €</p> */}
+          </div>
+
+          <hr className="my-6" />
+
+          {/* Markdown Description */}
+          <div className="prose prose-orange max-w-none text-black">
+            <ReactMarkdown remarkPlugins={[remarkGfm]}>
+              {product.description_full || product.description_short || ""}
+            </ReactMarkdown>
           </div>
 
           <hr className="my-6" />
 
           {/* Additional Info */}
-          <div className="space-y-2 text-gray-700 mb-6">
+          <div className="space-y-2 text-black mb-6">
             <p>
               <strong>Brand:</strong> {product.collaborator_name || "N/A"}
             </p>
@@ -138,7 +146,6 @@ export default function ProductDetailsPage() {
           </div>
         </div>
       </div>
-      {/* <FeaturedProducts /> */}
       <Footer />
     </>
   );

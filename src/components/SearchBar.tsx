@@ -67,7 +67,8 @@ export default function SearchBar() {
         onChange={(e) => setQ(e.target.value)}
         onFocus={() => results.length > 0 && setOpen(true)}
         placeholder="Search products…"
-        className="w-full rounded-full border px-4 py-2 pr-10 focus:outline-none focus:ring-2 focus:ring-orange-500"
+        className="w-full rounded-full border border-gray-300 px-4 py-2 pr-10 text-black 
+            focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
       />
 
       {/* Right icon / loader */}

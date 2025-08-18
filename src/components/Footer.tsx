@@ -30,7 +30,9 @@ export default function Footer() {
 
         {/* Company Links */}
         <div>
-          <h3 className="text-lg font-semibold mb-3">Company</h3>
+          <h3 className="text-lg font-semibold mb-3 text-orange-500">
+            Company
+          </h3>
           <ul className="space-y-2 text-gray-600">
             <li>
               <a href="/" className="hover:text-gray-900 transition">
@@ -57,7 +59,9 @@ export default function Footer() {
 
         {/* Contact */}
         <div>
-          <h3 className="text-lg font-semibold mb-3">Get in touch</h3>
+          <h3 className="text-lg font-semibold mb-3 text-orange-500">
+            Get in touch
+          </h3>
           <p className="text-gray-600 text-sm">
             Email:{" "}
             <a
@@ -89,7 +93,9 @@ export default function Footer() {
       <div className="max-w-6xl mx-auto px-6 mt-8 grid grid-cols-1 sm:grid-cols-3 gap-8">
         {/* Follow Us */}
         <div>
-          <h3 className="text-lg font-semibold mb-3">Follow Us</h3>
+          <h3 className="text-lg font-semibold mb-3 text-orange-500">
+            Follow Us
+          </h3>
           <div className="flex space-x-4 text-gray-600">
             <a
               href="https://www.facebook.com/profile.php?id=61577812032078&locale=el_GR"
@@ -136,7 +142,9 @@ export default function Footer() {
 
         {/* Payments */}
         <div>
-          <h3 className="text-lg font-semibold mb-3">Accepted Payments</h3>
+          <h3 className="text-lg font-semibold mb-3 text-orange-500">
+            Accepted Payments
+          </h3>
           <div className="flex flex-wrap gap-4">
             <Image src="/payments/visa.svg" alt="Visa" width={50} height={30} />
             <Image
@@ -162,7 +170,9 @@ export default function Footer() {
 
         {/* Shipping */}
         <div>
-          <h3 className="text-lg font-semibold mb-3">Shipping Partners</h3>
+          <h3 className="text-lg font-semibold mb-3 text-orange-500">
+            Shipping Partners
+          </h3>
           <div className="flex flex-wrap gap-4">
             <Image src="/shipping/elta.png" alt="ELTA" width={50} height={30} />
             <Image

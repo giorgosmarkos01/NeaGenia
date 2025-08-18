@@ -70,7 +70,7 @@ export default function HeroBanner() {
             </div>
 
             {/* Right Side */}
-            <div className="mt-8 md:mt-0 md:w-1/2 flex justify-center">
+            {/* <div className="mt-8 md:mt-0 md:w-1/2 flex justify-center">
               <Image
                 src={slide.image}
                 alt="Slide Image"
@@ -78,7 +78,7 @@ export default function HeroBanner() {
                 height={400}
                 className="object-contain"
               />
-            </div>
+            </div> */}
           </div>
         ))}
       </div>

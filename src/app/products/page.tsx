@@ -1,36 +1,106 @@
 import Navbar from "@/components/Navbar";
 import { Product } from "@/types/product";
 import ProductCard from "@/components/ProductCard";
-import FeaturedProducts from "@/app/components/FeaturedProducts";
 import Footer from "@/components/Footer";
-import HeroBanner from "@/components/HeroBanner";
-async function getProducts(): Promise<Product[]> {
-  const res = await fetch(
-    `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/items/category/all-items`,
-    {
-      cache: "no-store",
-    }
-  );
-  const data = await res.json();
-  return data.items; // <- fix here
+import CategoryFilterBar from "@/components/CategoryFilterBar";
+import Breadcrumbs from "@/components/Breadcrumbs";
+
+type PageProps = { searchParams?: { category?: string } };
+const API = process.env.NEXT_PUBLIC_API_BASE_URL!;
+
+// Optional: manual labels αν θέλεις πιο καθαρά ονόματα
+const LABELS: Record<string, string> = {
+  "robot-kits": "Robot Kits",
+  "robot-parts": "Robot Parts",
+  "educational-kits": "Educational Kits",
+  accessories: "Accessories",
+  tracks: "Tracks",
+};
+
+function titleCaseFromSlug(slug: string) {
+  if (LABELS[slug]) return LABELS[slug];
+  return slug.replace(/[-_]+/g, " ").replace(/\b\w/g, (m) => m.toUpperCase());
 }
 
-export default async function ProductsPage() {
-  const products = await getProducts();
+async function getAllProducts(): Promise<Product[]> {
+  const res = await fetch(`${API}/api/items/category/all-items`, {
+    cache: "no-store",
+  });
+  const data = await res.json();
+  return data.items ?? [];
+}
+
+type Category = { slug: string; name: string; count: number };
+
+function buildCategories(items: any[]): Category[] {
+  const map = new Map<string, Category>();
+  for (const p of items) {
+    const slug = String(p.category_name ?? "").toLowerCase();
+    if (!slug) continue;
+    const name = titleCaseFromSlug(slug);
+    const prev = map.get(slug);
+    map.set(slug, { slug, name, count: (prev?.count ?? 0) + 1 });
+  }
+  return Array.from(map.values()).sort((a, b) => a.name.localeCompare(b.name));
+}
+
+export default async function ProductsPage({ searchParams }: PageProps) {
+  const activeCategory = searchParams?.category?.toLowerCase();
+
+  // φέρε όλα τα προϊόντα μία φορά
+  const all = await getAllProducts();
+
+  // χτίσε categories με σωστά counts
+  const categories = buildCategories(all);
+
+  // φιλτράρισμα προϊόντων
+  const products = activeCategory
+    ? all.filter(
+        (p: any) =>
+          String(p.category_name ?? "").toLowerCase() === activeCategory
+      )
+    : all;
 
   return (
     <>
       <Navbar />
-      <HeroBanner />
       <div className="p-4 sm:p-6 bg-white">
-        <h1 className="text-xl sm:text-2xl font-bold mb-6">Popular products</h1>
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 sm:gap-8 ml-auto mr-auto max-w-6xl">
-          {products.map((p) => (
-            <ProductCard key={p.slug} product={p} />
-          ))}
+        <div className="mx-auto max-w-6xl">
+          <h1 className="text-xl sm:text-2xl font-bold mb-3 text-black">
+            {activeCategory
+              ? titleCaseFromSlug(activeCategory)
+              : "Popular products"}
+          </h1>
+
+          <CategoryFilterBar
+            categories={categories}
+            active={activeCategory ?? null}
+            basePath="/products"
+          />
+          <Breadcrumbs
+            items={[
+              { label: "Home", href: "/" },
+              { label: "Products", href: "/products" },
+              ...(activeCategory
+                ? [{ label: titleCaseFromSlug(activeCategory) }]
+                : []),
+            ]}
+          />
+          <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 sm:gap-8">
+            {products.length ? (
+              products.map((p) => <ProductCard key={p.slug} product={p} />)
+            ) : (
+              <p className="col-span-full text-sm text-zinc-600">
+                No products found
+                {activeCategory
+                  ? ` in “${titleCaseFromSlug(activeCategory)}”`
+                  : ""}
+                .
+              </p>
+            )}
+          </div>
         </div>
       </div>
-      {/* <FeaturedProducts /> */}
       <Footer />
     </>
   );
