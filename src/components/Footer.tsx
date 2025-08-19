@@ -169,11 +169,12 @@ export default function Footer() {
         </div>
 
         {/* Shipping */}
+        {/* Shipping */}
         <div>
           <h3 className="text-lg font-semibold mb-3 text-orange-500">
             Shipping Partners
           </h3>
-          <div className="flex flex-wrap gap-4">
+          <div className="flex flex-wrap gap-4 items-center">
             <Image src="/shipping/elta.png" alt="ELTA" width={50} height={30} />
             <Image
               src="/shipping/fedex.svg"
@@ -190,7 +191,100 @@ export default function Footer() {
           </div>
         </div>
       </div>
+      {/* Global Services Section */}
+      <div className="border-t border-gray-200 bg-gray-50 mt-20 mb-20">
+        <div className="max-w-6xl mx-auto px-6 py-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 text-center">
+          {/* Worldwide Shipping */}
+          <div>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth={2}
+              stroke="currentColor"
+              className="mx-auto h-8 w-8 text-orange-500 mb-3"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M12 3c4.97 0 9 4.03 9 9s-4.03 9-9 9-9-4.03-9-9 4.03-9 9-9zm0 0v9l6 3"
+              />
+            </svg>
+            <h4 className="font-semibold text-gray-800">Worldwide Shipping</h4>
+            <p className="text-sm text-gray-600 mt-1">
+              Reliable global delivery with trusted logistics partners.
+            </p>
+          </div>
 
+          {/* Reliability */}
+          <div>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth={2}
+              stroke="currentColor"
+              className="mx-auto h-8 w-8 text-orange-500 mb-3"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
+            </svg>
+            <h4 className="font-semibold text-gray-800">Reliability</h4>
+            <p className="text-sm text-gray-600 mt-1">
+              High-quality products tested for durability and performance.
+            </p>
+          </div>
+
+          {/* Technical Support */}
+          <div>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth={2}
+              stroke="currentColor"
+              className="mx-auto h-8 w-8 text-orange-500 mb-3"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M9 12h6m-3-3v6m9-3a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
+            </svg>
+            <h4 className="font-semibold text-gray-800">Technical Support</h4>
+            <p className="text-sm text-gray-600 mt-1">
+              Dedicated assistance for hardware & integration challenges.
+            </p>
+          </div>
+
+          {/* Software & Hardware Assistance */}
+          <div>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth={2}
+              stroke="currentColor"
+              className="mx-auto h-8 w-8 text-orange-500 mb-3"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M4 6h16M4 12h16M4 18h7"
+              />
+            </svg>
+            <h4 className="font-semibold text-gray-800">
+              Software & Hardware Support
+            </h4>
+            <p className="text-sm text-gray-600 mt-1">
+              Full lifecycle support from firmware to mechanical parts.
+            </p>
+          </div>
+        </div>
+      </div>
       {/* Google Map */}
       <div className="max-w-4xl mx-auto px-6 pb-10 mt-8">
         <div className="aspect-w-16 aspect-h-9 rounded overflow-hidden shadow-lg mb-8">

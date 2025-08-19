@@ -8,7 +8,7 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import Breadcrumbs from "@/components/Breadcrumbs";
 import { titleCaseFromSlug } from "@/lib/titleCaseFromSlug";
-
+import StockPill from "@/components/StockPill";
 const fallbackImage = "/logo.png";
 const baseUrl = "https://svkroboticsedu.com";
 
@@ -21,6 +21,7 @@ interface Product {
   images?: string[];
   category_name?: string;
   collaborator_name?: string;
+  stock_status?: string;
 }
 
 export default function ProductDetailsPage() {
@@ -115,6 +116,7 @@ export default function ProductDetailsPage() {
 
           {/* Price */}
           <div className="flex items-center space-x-3 mb-6">
+            <StockPill status={product.stock_status} />
             <p className="text-3xl font-bold text-black">{product.price} €</p>
             {/* strike-through example (remove if not needed) */}
             {/* <p className="text-lg text-gray-500 line-through">4199.99 €</p> */}

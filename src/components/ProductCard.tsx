@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Product } from "@/types/product";
 import Link from "next/link";
 import AddToCartButton from "@/components/AddToCartButton";
-
+import StockPill from "./StockPill";
 interface ProductCardProps {
   product: Product;
 }
@@ -78,7 +78,12 @@ export default function ProductCard({ product }: ProductCardProps) {
         <p className="text-base sm:text-xl font-bold text-gray-900">
           {product.price} €
         </p>
-        <AddToCartButton product={product} />
+
+        <p>
+          <AddToCartButton product={product} />
+
+          <StockPill status={product.stock_status} />
+        </p>
       </div>
     </div>
   );
