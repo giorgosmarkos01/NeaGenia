@@ -79,11 +79,11 @@ export default function ProductCard({ product }: ProductCardProps) {
           {product.price} €
         </p>
 
-        <p>
+        <span>
           <AddToCartButton product={product} />
 
           <StockPill status={product.stock_status} />
-        </p>
+        </span>
       </div>
     </div>
   );
