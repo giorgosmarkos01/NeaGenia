@@ -61,29 +61,31 @@ export default function ProductDetailsPage() {
   return (
     <>
       <Navbar />
-      <Breadcrumbs
-        items={[
-          { label: "Home", href: "/" },
-          { label: "Products", href: "/products" },
-          {
-            label: titleCaseFromSlug(product.category_name),
-            href: `/products?category=${product.category_name}`,
-          },
-          { label: product.name }, // current page, χωρίς href
-        ]}
-        separator="/"
-      />
+
       <div className="bg-white max-w-6xl mx-auto p-6 grid grid-cols-1 md:grid-cols-2 gap-8">
         {/* Left: Image Gallery */}
         <div>
-          <div className="bg-gray-100 rounded-lg flex items-center justify-center p-4">
-            <img
-              src={selectedImage}
-              alt={product.name}
-              className="w-full max-h-[400px] object-contain"
+          <div>
+            <Breadcrumbs
+              items={[
+                { label: "Home", href: "/" },
+                { label: "Products", href: "/products" },
+                {
+                  label: titleCaseFromSlug(product.category_name),
+                  href: `/products?category=${product.category_name}`,
+                },
+                { label: product.name }, // current page, χωρίς href
+              ]}
+              separator="/"
             />
+            <div className="bg-gray-100 rounded-lg flex items-center justify-center p-4">
+              <img
+                src={selectedImage}
+                alt={product.name}
+                className="w-full max-h-[400px] object-contain"
+              />
+            </div>
           </div>
-
           <div className="flex mt-4 space-x-2">
             {(product.images?.length ? product.images : [fallbackImage]).map(
               (img, index) => {

@@ -101,10 +101,7 @@ export default function AddToCartButton({ product }: { product: ApiProduct }) {
     "bg-orange-500 text-white hover:bg-orange-600 disabled:opacity-60 disabled:cursor-not-allowed";
   const muted = "bg-gray-200 text-gray-500 cursor-not-allowed";
 
-  const disabledLabel =
-    product.stock_status?.toLowerCase() === "ask_for_price"
-      ? "Ask for Price"
-      : "Unavailable";
+  const detailsLabel = "Details";
 
   return (
     <div className="flex items-center gap-2 min-h-[40px]">
@@ -130,25 +127,18 @@ export default function AddToCartButton({ product }: { product: ApiProduct }) {
             </motion.button>
           ) : (
             <motion.div
-              key="disabled"
+              key="details"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               className="flex items-center gap-2"
             >
-              <button disabled className={`${btn} ${muted}`}>
-                {disabledLabel}
-              </button>
-              {product.stock_status?.toLowerCase() === "ask_for_price" && (
-                <Link
-                  href={`/contact?subject=${encodeURIComponent(
-                    `Price request: ${product.name}`
-                  )}`}
-                  className="inline-flex items-center rounded-lg border px-3 py-1.5 text-sm text-zinc-700 hover:bg-zinc-50"
-                >
-                  Contact
-                </Link>
-              )}
+              <Link
+                href={`/products/${product.slug || product.id}`}
+                className={`${btn} bg-gray-800 text-white hover:bg-gray-900`}
+              >
+                {detailsLabel}
+              </Link>
             </motion.div>
           )
         ) : (

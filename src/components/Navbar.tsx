@@ -62,6 +62,24 @@ export default function Navbar() {
               priority
             />
           </Link>
+          {/* Desktop links (εμφανίζονται μόνο σε md+) */}
+          <ul className="hidden md:flex items-center gap-6 ml-4">
+            {links.map((l) => (
+              <li key={l.href}>
+                <Link
+                  href={l.href}
+                  className={cn(
+                    "text-sm hover:text-orange-600 transition",
+                    pathname === l.href
+                      ? "text-orange-600 font-medium"
+                      : "text-zinc-700"
+                  )}
+                >
+                  {l.label}
+                </Link>
+              </li>
+            ))}
+          </ul>
         </div>
 
         {/* Desktop searchbar in center */}
