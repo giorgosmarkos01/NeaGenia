@@ -5,7 +5,9 @@ import Footer from "@/components/Footer";
 import CategoryFilterBar from "@/components/CategoryFilterBar";
 import Breadcrumbs from "@/components/Breadcrumbs";
 
-type PageProps = { searchParams?: { category?: string } };
+type SearchParams = { category?: string | string[] };
+type PageProps = { searchParams: Promise<SearchParams> };
+
 const API = process.env.NEXT_PUBLIC_API_BASE_URL!;
 
 // Optional: manual labels αν θέλεις πιο καθαρά ονόματα
@@ -45,7 +47,13 @@ function buildCategories(items: any[]): Category[] {
 }
 
 export default async function ProductsPage({ searchParams }: PageProps) {
-  const activeCategory = searchParams?.category?.toLowerCase();
+  // ✅ await before using
+  const sp = await searchParams;
+
+  // normalize to a single lowercase string
+  const activeCategory = Array.isArray(sp.category)
+    ? sp.category[0]?.toLowerCase()
+    : sp.category?.toLowerCase();
 
   // φέρε όλα τα προϊόντα μία φορά
   const all = await getAllProducts();
@@ -77,6 +85,7 @@ export default async function ProductsPage({ searchParams }: PageProps) {
             active={activeCategory ?? null}
             basePath="/products"
           />
+
           <Breadcrumbs
             items={[
               { label: "Home", href: "/" },
@@ -87,6 +96,7 @@ export default async function ProductsPage({ searchParams }: PageProps) {
             ]}
             separator="/"
           />
+
           <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 sm:gap-8">
             {products.length ? (
               products.map((p) => <ProductCard key={p.slug} product={p} />)
