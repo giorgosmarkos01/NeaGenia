@@ -1,7 +1,7 @@
 "use client";
 
 import { useDispatch, useSelector } from "react-redux";
-import { setCart, decrementItem, removeItem } from "@/store/cartSlice";
+import { setCart } from "@/store/cartSlice";
 import { useRef, useState } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
@@ -29,20 +29,35 @@ export default function AddToCartButton({ product }: { product: ApiProduct }) {
   const [loading, setLoading] = useState(false);
   const lock = useRef(false);
   const enabled = isEnabled(product.stock_status);
+  const priceNum = Number.parseFloat(String(product.price));
 
-  // ---- API helpers (DELTA semantics) ----
+  // --- fetch helpers with robust parsing ---
+  const parseJsonSafe = async (res: Response) => {
+    const text = await res.text();
+    try {
+      return text ? JSON.parse(text) : null;
+    } catch {
+      console.error("Non-JSON response:", text);
+      throw new Error(`HTTP ${res.status} (non-JSON)`);
+    }
+  };
+
   const postDelta = async (delta: number) => {
     const res = await fetch("/api/cart/items", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         productId: product.id,
-        qty: delta, // <-- delta (+1 / -1). Change to "delta" if your API uses that key.
-        price: Number(product.price),
+        qty: delta, // server will do qty = qty + delta
+        price: Number.isFinite(priceNum) ? priceNum : undefined,
       }),
     });
-    if (!res.ok) throw new Error("POST delta failed");
-    return res.json();
+    const data = await parseJsonSafe(res);
+    if (!res.ok) {
+      console.error("POST /api/cart/items failed:", data);
+      throw new Error(data?.error || res.statusText);
+    }
+    return data;
   };
 
   const deleteItem = async () => {
@@ -51,8 +66,12 @@ export default function AddToCartButton({ product }: { product: ApiProduct }) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ productId: product.id }),
     });
-    if (!res.ok) throw new Error("DELETE failed");
-    return res.json();
+    const data = await parseJsonSafe(res);
+    if (!res.ok) {
+      console.error("DELETE /api/cart/items failed:", data);
+      throw new Error(data?.error || res.statusText);
+    }
+    return data;
   };
 
   const run = async (fn: () => Promise<any>) => {
@@ -61,7 +80,7 @@ export default function AddToCartButton({ product }: { product: ApiProduct }) {
     setLoading(true);
     try {
       const data = await fn();
-      dispatch(setCart(data.items || []));
+      dispatch(setCart(data.items || [])); // single source of truth = server
     } catch (e) {
       console.error("[cart] sync error", e);
     } finally {
@@ -70,7 +89,7 @@ export default function AddToCartButton({ product }: { product: ApiProduct }) {
     }
   };
 
-  // ---- Handlers ----
+  // --- Handlers ---
   const handleAdd = () => {
     if (!enabled || loading) return;
     run(() => postDelta(+1));
@@ -78,28 +97,25 @@ export default function AddToCartButton({ product }: { product: ApiProduct }) {
 
   const handlePlus = () => {
     if (loading) return;
-    run(() => postDelta(+1)); // server increments, then setCart syncs
+    run(() => postDelta(+1));
   };
 
   const handleMinus = () => {
     if (loading) return;
-
     if (storeQty > 1) {
-      // Just decrement locally
-      dispatch(decrementItem(product.id));
-      // (optional: sync server in background with -1 POST if your API supports it)
+      // decrement on server
+      run(() => postDelta(-1));
     } else {
-      // Last piece → remove from backend
+      // going to zero -> remove row on server
       run(() => deleteItem());
     }
   };
 
-  // ---- Styles ----
+  // --- Styles ---
   const btn =
     "px-4 py-2 text-sm font-medium rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-400";
   const orange =
     "bg-orange-500 text-white hover:bg-orange-600 disabled:opacity-60 disabled:cursor-not-allowed";
-  const muted = "bg-gray-200 text-gray-500 cursor-not-allowed";
 
   const detailsLabel = "Details";
 
@@ -118,6 +134,7 @@ export default function AddToCartButton({ product }: { product: ApiProduct }) {
               exit={{ opacity: 0, scale: 0.95 }}
               transition={{ duration: 0.18 }}
               whileTap={{ scale: 0.97 }}
+              aria-label="Add to cart"
             >
               {loading
                 ? "Adding..."

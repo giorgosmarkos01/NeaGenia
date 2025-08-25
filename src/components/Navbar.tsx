@@ -3,10 +3,12 @@
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { useSelector } from "react-redux";
-import { useState } from "react";
+import { useSelector, useDispatch } from "react-redux"; // NEW
+import { useEffect, useState } from "react"; // NEW
 import { SignedIn, SignedOut, SignInButton, UserButton } from "@clerk/nextjs";
+import { useAuth } from "@clerk/nextjs"; // (client hook)
 import SearchBar from "./SearchBar";
+import { clearCart, setCart } from "@/store/cartSlice"; // NEW
 
 function cn(...xs: (string | false | null | undefined)[]) {
   return xs.filter(Boolean).join(" ");
@@ -16,6 +18,9 @@ export default function Navbar() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
 
+  const dispatch = useDispatch(); // NEW
+  const { isSignedIn } = useAuth(); // NEW
+
   // cart count
   const count =
     useSelector((s: any) =>
@@ -24,6 +29,32 @@ export default function Navbar() {
         0
       )
     ) ?? 0;
+
+  // ⬇️ Sync cart όταν αλλάζει το auth state (sign-in / sign-out)
+  useEffect(() => {
+    let cancelled = false;
+
+    (async () => {
+      try {
+        if (!isSignedIn) {
+          // καθάρισε αμέσως το badge στο sign-out
+          dispatch(clearCart());
+        }
+        const res = await fetch("/api/cart", { cache: "no-store" });
+        if (!res.ok) return;
+        const data = await res.json();
+        if (!cancelled) {
+          dispatch(setCart(data.items || []));
+        }
+      } catch {
+        /* ignore */
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [isSignedIn, dispatch]); // NEW
 
   const links = [
     { href: "/", label: "Home" },
@@ -56,13 +87,14 @@ export default function Navbar() {
             <Image
               src="/logo.png"
               alt="SVK Robotics"
-              width={100} // bigger logo
+              width={100}
               height={70}
               className="rounded"
               priority
             />
           </Link>
-          {/* Desktop links (εμφανίζονται μόνο σε md+) */}
+
+          {/* Desktop links */}
           <ul className="hidden md:flex items-center gap-6 ml-4">
             {links.map((l) => (
               <li key={l.href}>
@@ -89,12 +121,10 @@ export default function Navbar() {
 
         {/* Right: avatar + cart + sign in */}
         <div className="ml-auto flex items-center gap-3">
-          {/* Avatar always visible */}
           <SignedIn>
             <UserButton afterSignOutUrl="/" />
           </SignedIn>
 
-          {/* Cart always visible */}
           <Link
             href="/cart"
             className="relative inline-flex items-center justify-center rounded-lg hover:bg-zinc-100 text-black"
@@ -118,7 +148,6 @@ export default function Navbar() {
             )}
           </Link>
 
-          {/* Sign in only on desktop */}
           <SignedOut>
             <SignInButton mode="modal">
               <button className="hidden md:inline text-sm font-medium text-orange-500 hover:text-orange-600 transition">
@@ -157,7 +186,6 @@ export default function Navbar() {
               </li>
             ))}
 
-            {/* Mobile Sign in */}
             <li className="pt-2">
               <SignedOut>
                 <SignInButton mode="modal">
