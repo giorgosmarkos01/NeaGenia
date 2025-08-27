@@ -246,12 +246,14 @@ export default function CartPage() {
               {/* <button className="w-full py-3 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition">
                 Procced to Checkout
               </button> */}
-              <Link
-                href="/checkout"
-                className="w-full py-3 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition"
-              >
-                Proceed to Checkout
-              </Link>
+              <div className="flex justify-center">
+                <Link
+                  href="/checkout"
+                  className="px-8 py-3 bg-orange-600 text-white rounded-lg text-lg hover:bg-orange-700 transition"
+                >
+                  Proceed to Checkout
+                </Link>
+              </div>
             </div>
           </div>
         )}
