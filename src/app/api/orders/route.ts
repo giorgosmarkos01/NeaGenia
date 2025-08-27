@@ -1,14 +1,12 @@
-// src/app/api/orders/route.ts
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { v4 as uuidv4 } from "uuid";
 import { auth } from "@clerk/nextjs/server";
 import { cookies } from "next/headers";
 
-// ------------------ helpers ------------------
+// -- helpers ----------------------------------------------------
 
 function genOrderCode() {
-  // Temporary human-readable code until Viva is integrated
   const d = new Date();
   const y = String(d.getFullYear()).slice(-2);
   const m = String(d.getMonth() + 1).padStart(2, "0");
@@ -27,7 +25,7 @@ async function getCartIdForCurrentUser() {
       `SELECT id FROM carts WHERE user_id = ? LIMIT 1`,
       [userId]
     );
-    if (row?.id) return { cartId: row.id as string, userId };
+    if (row?.id) return { cartId: row.id, userId };
 
     const newId = uuidv4();
     await db.query(
@@ -37,22 +35,14 @@ async function getCartIdForCurrentUser() {
     return { cartId: newId, userId };
   }
 
-  // guest cart
-  if (cookieCart) return { cartId: cookieCart as string, userId: null };
+  if (cookieCart) return { cartId: cookieCart, userId: null };
 
   const newId = uuidv4();
   await db.query(`INSERT INTO carts (id, status) VALUES (?, 'open')`, [newId]);
   return { cartId: newId, userId: null };
 }
 
-type CartItemRow = {
-  productId: string;
-  name: string;
-  price: number;
-  qty: number;
-};
-
-async function fetchCartItems(cartId: string): Promise<CartItemRow[]> {
+async function fetchCartItems(cartId: string) {
   const [rows]: any = await db.query(
     `
       SELECT
@@ -75,142 +65,179 @@ async function fetchCartItems(cartId: string): Promise<CartItemRow[]> {
   }));
 }
 
-function normaliseShipping(input: unknown): "ELTA" | "FedEx" | "BoxNow" {
-  const s = String(input || "").toUpperCase();
-  if (s === "ELTA") return "ELTA";
-  if (s === "FEDEX") return "FedEx";
-  if (s === "BOXNOW") return "BoxNow";
-  // default
-  return "ELTA";
+function normShipping(s?: string) {
+  const v = (s || "").toUpperCase();
+  if (v === "ELTA" || v === "FEDEX" || v === "BOXNOW") return v;
+  return "ELTA"; // default
 }
 
-// ------------------ POST /api/orders (RECEIPT ONLY) ------------------
-
+// -- POST /api/orders ------------------------------------------
+// Υποστηρίζει: docType = "receipt" | "invoice"
 export async function POST(req: Request) {
-  // Expect JSON body from checkout form
-  const body = (await req.json().catch(() => ({}))) as Record<string, any>;
+  const body = await req.json().catch(() => ({}));
 
-  // Required fields for a receipt
   const {
+    docType, // "receipt" | "invoice"
+    // common (order/customer)
     customer_name,
     email,
     phone_number,
+
+    // delivery_details
     address, // address_line
     city,
     province,
     zip,
-    country = "Greece",
-    shipping, // e.g. "elta" from UI
-    docType, // must be "receipt" for now
-  } = body;
+    country,
+    shipping, // "ELTA" | "FedEx" | "BoxNow" (string)
 
-  if (docType !== "receipt") {
+    // invoice_details (ONLY when docType === "invoice")
+    company_name,
+    vat_number,
+    company_address,
+    company_city,
+    company_zip,
+    occupation, // (= profession)
+    tax_office,
+  } = body || {};
+
+  // ----- validate per docType -----
+  if (docType !== "receipt" && docType !== "invoice") {
+    return NextResponse.json({ error: "Invalid docType" }, { status: 400 });
+  }
+
+  // Common required
+  if (!customer_name || !email || !phone_number) {
     return NextResponse.json(
-      { error: "Only receipt flow is enabled for now." },
+      { error: "Missing customer_name, email or phone_number" },
       { status: 400 }
     );
   }
 
-  // Basic validation – required fields for receipt + delivery row
-  if (
-    !customer_name ||
-    !email ||
-    !phone_number ||
-    !address ||
-    !city ||
-    !zip ||
-    !country ||
-    !province
-  ) {
+  // Delivery required
+  if (!address || !city || !province || !zip || !country) {
     return NextResponse.json(
-      { error: "Missing required fields" },
+      {
+        error:
+          "Missing delivery fields (address, city, province, zip, country)",
+      },
       { status: 400 }
     );
+  }
+
+  // Invoice-only required
+  if (docType === "invoice") {
+    if (
+      !company_name ||
+      !vat_number ||
+      !company_address ||
+      !company_city ||
+      !company_zip ||
+      !occupation ||
+      !tax_office
+    ) {
+      return NextResponse.json(
+        { error: "Missing invoice fields" },
+        { status: 400 }
+      );
+    }
   }
 
   try {
     const { cartId, userId } = await getCartIdForCurrentUser();
-
-    // 1) Only trust DB for cart contents
     const items = await fetchCartItems(cartId);
     if (!items.length) {
       return NextResponse.json({ error: "Cart is empty" }, { status: 400 });
     }
 
-    // 2) Server-side totals
+    // totals
+    const ship = normShipping(shipping);
+    const shippingCost = ship === "ELTA" ? 4.35 : 0; // adjust if θες
     const subtotal = items.reduce(
-      (s: number, it: { price: number; qty: number }) => s + it.price * it.qty,
+      (sum: number, it: any) => sum + it.price * it.qty,
       0
     );
-    const shippingEnum = normaliseShipping(shipping);
-    const deliveryCost = shippingEnum === "ELTA" ? 4.35 : 0.0; // tweak if you add FedEx/BoxNow
-    const total_amount = Number((subtotal + deliveryCost).toFixed(2));
+    const total_amount = Number((subtotal + shippingCost).toFixed(2));
 
     const order_id = uuidv4();
     const orderCode = genOrderCode();
 
-    // 3) Transaction: orders → order_items → delivery_details → clear cart
+    // --- transaction ---
     await db.query("START TRANSACTION");
 
-    // orders row
+    // orders
     await db.query(
       `INSERT INTO orders
-       (order_id, user_id, customer_name, email, phone_number, order_type, total_amount, payment_status, orderCode)
-       VALUES (?, ?, ?, ?, ?, 'receipt', ?, 'pending', ?)`,
+        (order_id, user_id, customer_name, email, phone_number, order_type, total_amount, payment_status, orderCode)
+       VALUES (?, ?, ?, ?, ?, ?, ?, 'pending', ?)`,
       [
         order_id,
         userId ?? null,
         customer_name,
         email,
         phone_number,
+        docType, // 'receipt' | 'invoice'
         total_amount,
         orderCode,
       ]
     );
 
-    // order_items rows — per your schema (NO product_id field)
-    // order_items: order_item_id (auto), order_id, customer_name, item_name,
-    // item_product_code (NULL), item_variation_name (NULL), quantity, price, total_price (generated)
+    // order_items (σύμφωνα με το schema σου)
     for (const it of items) {
       await db.query(
         `INSERT INTO order_items
-         (order_id, customer_name, item_name, item_product_code, item_variation_name, quantity, price)
+          (order_id, customer_name, item_name, item_product_code, item_variation_name, quantity, price)
          VALUES (?, ?, ?, ?, ?, ?, ?)`,
         [
           order_id,
           customer_name,
           it.name,
-          null, // item_product_code (optional)
-          null, // item_variation_name (optional)
+          null, // item_product_code (δεν έχεις εδώ – βάλε αν θέλεις από item.product_code)
+          null, // item_variation_name
           it.qty,
           it.price,
         ]
       );
     }
 
-    // delivery_details row
+    // delivery_details
     await db.query(
       `INSERT INTO delivery_details
-       (order_id, address_line, city, province, zip, country, shipping_option, cost, weight,
-        box_now_locker_postal_code, box_now_locker_address_line1, box_now_locker_id)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        (order_id, address_line, city, province, zip, country, shipping_option, cost, weight)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         order_id,
         address,
         city,
-        province ?? null,
+        province,
         zip,
         country,
-        shippingEnum,
-        deliveryCost,
-        0.0, // weight — compute later if needed
-        null,
-        null,
-        null,
+        ship, // "ELTA" | "FEDEX" | "BOXNOW"
+        shippingCost,
+        0.0, // weight: αν έχεις βάρη, υπολόγισέ τα
       ]
     );
 
-    // clear cart items (keep the cart row “open”)
+    // invoice_details (μόνο για invoice)
+    if (docType === "invoice") {
+      await db.query(
+        `INSERT INTO invoice_details
+          (order_id, company_name, company_address, company_city, company_zip, vat_number, occupation, tax_office)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+        [
+          order_id,
+          company_name,
+          company_address,
+          company_city,
+          company_zip,
+          vat_number,
+          occupation,
+          tax_office,
+        ]
+      );
+    }
+
+    // καθάρισε το cart
     await db.query(`DELETE FROM cart_items WHERE cart_id = ?`, [cartId]);
 
     await db.query("COMMIT");
@@ -218,9 +245,10 @@ export async function POST(req: Request) {
     return NextResponse.json(
       {
         orderId: order_id,
-        orderCode, // temporary code; replace with Viva transaction info later
+        orderCode,
         payment_status: "pending",
         total_amount,
+        docType,
       },
       { status: 201 }
     );
