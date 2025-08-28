@@ -121,10 +121,16 @@ export default function Navbar() {
 
         {/* Right: avatar + cart + sign in */}
         <div className="ml-auto flex items-center gap-3">
-          <SignedIn>
+          {/* <SignedIn>
             <UserButton afterSignOutUrl="/" />
+          </SignedIn> */}
+          <SignedIn>
+            <UserButton afterSignOutUrl="/">
+              <UserButton.MenuItems>
+                <UserButton.Link label="Orders" labelIcon="📦" href="/orders" />
+              </UserButton.MenuItems>
+            </UserButton>
           </SignedIn>
-
           <Link
             href="/cart"
             className="relative inline-flex items-center justify-center rounded-lg hover:bg-zinc-100 text-black"
