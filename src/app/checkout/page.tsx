@@ -124,7 +124,6 @@ export default function CheckoutPage() {
     }
     return null;
   };
-
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -136,33 +135,93 @@ export default function CheckoutPage() {
 
     setLoading(true);
     try {
-      const res = await fetch("/api/orders", {
+      const orderRes = await fetch("/api/orders", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(buildPayload()),
       });
 
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) {
-        console.error("Order creation failed:", data);
-        alert(data?.error || "Failed to create order.");
+      const orderData = await orderRes.json();
+      if (!orderRes.ok) {
+        alert(orderData?.error || "Order creation failed.");
         return;
       }
 
-      // success
-      alert(
-        `Order created!\nOrder Code: ${data.orderCode}\nAmount: ${data.total_amount}€\nStatus: ${data.payment_status}`
-      );
+      const vivaPayload = {
+        amount: Math.round(grandTotal * 100),
+        customer: {
+          fullName: customer_name,
+          email,
+          phone: phone_number,
+          countryCode: "GR",
+        },
+      };
 
-      // προαιρετικά: redirect σε /thank-you?orderId=...
-      // router.push(`/thank-you?orderId=${data.orderId}`);
+      console.log("[VIVA] Sending payload:", vivaPayload);
+
+      const vivaRes = await fetch("/api/viva/create-payment-order", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(vivaPayload),
+      });
+
+      const vivaData = await vivaRes.json();
+      console.log("[VIVA] Response:", vivaData);
+
+      if (!vivaRes.ok) {
+        alert(vivaData?.error || "Viva order failed.");
+        return;
+      }
+
+      window.location.href = `https://demo.vivapayments.com/web/checkout?ref=${vivaData.orderCode}`;
     } catch (err) {
-      console.error(err);
-      alert("Network error while creating order.");
+      console.error("[Checkout Error]:", err);
+      alert("Error connecting to server.");
     } finally {
       setLoading(false);
     }
   };
+
+  // const onSubmit = async (e: React.FormEvent) => {
+  //   e.preventDefault();
+
+  //   const err = validateForm();
+  //   if (err) {
+  //     alert(err);
+  //     return;
+  //   }
+
+  //   setLoading(true);
+  //   try {
+  //     const res = await fetch("/api/orders", {
+  //       method: "POST",
+  //       headers: { "Content-Type": "application/json" },
+  //       body: JSON.stringify(buildPayload()),
+  //     });
+
+  //     const data = await res.json().catch(() => ({}));
+  //     if (!res.ok) {
+  //       console.error("Order creation failed:", data);
+  //       alert(data?.error || "Failed to create order.");
+  //       return;
+  //     }
+
+  //     // success
+  //     alert(
+  //       `Order created!\nOrder Code: ${data.orderCode}\nAmount: ${data.total_amount}€\nStatus: ${data.payment_status}`
+  //     );
+
+  //     // προαιρετικά: redirect σε /thank-you?orderId=...
+  //     // router.push(`/thank-you?orderId=${data.orderId}`);
+  //   } catch (err) {
+  //     console.error(err);
+  //     alert("Network error while creating order.");
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
 
   return (
     <>
