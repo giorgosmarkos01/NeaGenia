@@ -83,11 +83,11 @@ async function resolveCartId() {
 // PATCH qty
 // ----------------------
 
-export async function PATCH(
-  req: NextRequest,
-  context: { params: { productId: string } }
-) {
-  const { productId } = context.params;
+export async function PATCH(req: NextRequest) {
+  const url = new URL(req.url);
+  const segments = url.pathname.split("/");
+  const productId = segments[segments.length - 1];
+
   const { qty } = await req.json();
   const newQty = Number(qty);
 
