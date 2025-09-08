@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -39,31 +39,32 @@ export default function CartPage() {
 
   const toMoney = (v: unknown) => Number.parseFloat(String(v ?? 0)) || 0;
 
-  function applyItems(rawItems: ApiCartItem[]) {
-    // UI items (κρατάνε και imageUrl)
-    const uiItems: UiCartItem[] = rawItems.map((it) => ({
-      productId: it.productId,
-      name: it.name,
-      price: toMoney(it.price),
-      qty: it.qty,
-      imageUrl: it.imageUrl
-        ? it.imageUrl.startsWith("/")
-          ? baseUrl + it.imageUrl
-          : it.imageUrl
-        : fallbackImage,
-    }));
-    setItems(uiItems);
-    setTotal(uiItems.reduce((sum, i) => sum + i.price * i.qty, 0));
+  const applyItems = useCallback(
+    (rawItems: ApiCartItem[]) => {
+      const uiItems: UiCartItem[] = rawItems.map((it) => ({
+        productId: it.productId,
+        name: it.name,
+        price: toMoney(it.price),
+        qty: it.qty,
+        imageUrl: it.imageUrl
+          ? it.imageUrl.startsWith("/")
+            ? baseUrl + it.imageUrl
+            : it.imageUrl
+          : fallbackImage,
+      }));
+      setItems(uiItems);
+      setTotal(uiItems.reduce((sum, i) => sum + i.price * i.qty, 0));
 
-    // Redux items (μόνο αυτά που ζητάει το slice)
-    const reduxItems = rawItems.map((it) => ({
-      productId: it.productId,
-      name: it.name,
-      price: toMoney(it.price),
-      qty: it.qty,
-    }));
-    dispatch(setCart(reduxItems));
-  }
+      const reduxItems = rawItems.map((it) => ({
+        productId: it.productId,
+        name: it.name,
+        price: toMoney(it.price),
+        qty: it.qty,
+      }));
+      dispatch(setCart(reduxItems));
+    },
+    [dispatch]
+  );
 
   useEffect(() => {
     (async () => {
@@ -72,7 +73,7 @@ export default function CartPage() {
       const data: CartApiResponse = await res.json();
       applyItems(data.items);
     })();
-  }, []);
+  }, [applyItems]);
 
   // ---------- API helpers ----------
   const postDelta = async (productId: string, delta: number, price: number) => {
