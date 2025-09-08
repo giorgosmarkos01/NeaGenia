@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 
 type SearchItem = {
   id: string;
@@ -139,10 +140,12 @@ export default function SearchBar() {
                       className="flex items-center gap-3 p-3 hover:bg-zinc-50 transition"
                       onClick={() => setOpen(false)}
                     >
-                      <img
+                      <Image
                         src={img}
                         alt={item.name}
-                        className="h-10 w-10 rounded-lg object-cover bg-gray-100"
+                        width={64}
+                        height={64}
+                        className="object-cover rounded"
                       />
                       <div className="min-w-0">
                         <p className="truncate text-sm font-medium text-gray-900">

@@ -4,6 +4,7 @@ import { Product } from "@/types/product";
 import Link from "next/link";
 import AddToCartButton from "@/components/AddToCartButton";
 import StockPill from "./StockPill";
+import Image from "next/image";
 interface ProductCardProps {
   product: Product;
 }
@@ -53,10 +54,14 @@ export default function ProductCard({ product }: ProductCardProps) {
       {/* Image */}
       <Link href={`/products/${product.slug}`}>
         <div className="w-full h-36 sm:h-44 flex items-center justify-center bg-gray-50 rounded-lg mb-3 sm:mb-4 overflow-hidden">
-          <img
+          <Image
             src={imageUrl}
             alt={product.name}
-            className="max-h-32 sm:max-h-40 object-contain transition-transform duration-300 ease-in-out hover:scale-110"
+            width={200} // εικονική τιμή, μπορείς να τη ρυθμίσεις όπως ταιριάζει
+            height={160} // ίδια εδώ, ανάλογα με την εμφάνιση
+            className="object-contain transition-transform duration-300 ease-in-out hover:scale-110"
+            style={{ maxHeight: "10rem" }} // max-h-40 = 10rem (σε pixels 160px)
+            sizes="(min-width: 640px) 160px, 128px"
           />
         </div>
       </Link>

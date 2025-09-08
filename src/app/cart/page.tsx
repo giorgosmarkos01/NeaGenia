@@ -7,7 +7,7 @@ import Footer from "@/components/Footer";
 import RemoveFromCartButton from "@/components/RemoveFromCartButton";
 import { useDispatch } from "react-redux";
 import { setCart, decrementItem } from "@/store/cartSlice";
-
+import Image from "next/image";
 const fallbackImage = "/logo.png";
 const baseUrl = "https://svkroboticsedu.com";
 
@@ -171,10 +171,12 @@ export default function CartPage() {
                     return (
                       <tr key={it.productId} className="border-b">
                         <td className="py-4 flex items-center space-x-4">
-                          <img
+                          <Image
                             src={it.imageUrl || fallbackImage}
                             alt={it.name}
-                            className="w-16 h-16 object-cover rounded"
+                            width={64} // αντίστοιχο του w-16 = 4rem = 64px
+                            height={64} // αντίστοιχο του h-16 = 4rem = 64px
+                            className="object-cover rounded"
                           />
                           <div>
                             <p className="text-black">{it.name}</p>
