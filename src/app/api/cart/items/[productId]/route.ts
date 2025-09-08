@@ -1,5 +1,5 @@
 import { cookies } from "next/headers";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { v4 as uuidv4 } from "uuid";
 import { auth } from "@clerk/nextjs/server";
@@ -74,7 +74,7 @@ async function resolveCartId() {
 
 // ---- PATCH qty --------------------------------------------------
 export async function PATCH(
-  req: Request,
+  req: NextRequest,
   { params }: { params: { productId: string } }
 ) {
   const { productId } = params;
@@ -85,8 +85,7 @@ export async function PATCH(
     return NextResponse.json({ error: "Invalid qty" }, { status: 400 });
   }
 
-  const r = await resolveCartId();
-  const cartId = r.cartId;
+  const { cartId } = await resolveCartId();
 
   await db.query(
     `UPDATE cart_items SET qty = ? WHERE cart_id = ? AND product_id = ?`,
