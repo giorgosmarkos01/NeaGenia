@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 import {
   FaFacebookF,
   FaInstagram,
@@ -35,24 +36,24 @@ export default function Footer() {
           </h3>
           <ul className="space-y-2 text-gray-600">
             <li>
-              <a href="/" className="hover:text-gray-900 transition">
+              <Link href="/" className="hover:text-gray-900 transition">
                 Home
-              </a>
+              </Link>
             </li>
             <li>
-              <a href="/about" className="hover:text-gray-900 transition">
+              <Link href="/about" className="hover:text-gray-900 transition">
                 About us
-              </a>
+              </Link>
             </li>
             <li>
-              <a href="/contact" className="hover:text-gray-900 transition">
+              <Link href="/contact" className="hover:text-gray-900 transition">
                 Contact us
-              </a>
+              </Link>
             </li>
             <li>
-              <a href="/privacy" className="hover:text-gray-900 transition">
+              <Link href="/privacy" className="hover:text-gray-900 transition">
                 Privacy policy
-              </a>
+              </Link>
             </li>
           </ul>
         </div>
@@ -64,24 +65,24 @@ export default function Footer() {
           </h3>
           <p className="text-gray-600 text-sm">
             Email:{" "}
-            <a
+            <Link
               href="mailto:info@svkrobotics.com"
               className="text-blue-500 hover:underline"
             >
               info@svkrobotics.com
-            </a>
+            </Link>
           </p>
           <p className="text-gray-600 text-sm">
             Phone:{" "}
-            <a href="tel:+302816008699" className="hover:underline">
+            <Link href="tel:+302816008699" className="hover:underline">
               +30 281 600 8699
-            </a>
+            </Link>
           </p>
           <p className="text-gray-600 text-sm">
             Mobile:{" "}
-            <a href="tel:+306947586765" className="hover:underline">
+            <Link href="tel:+306947586765" className="hover:underline">
               +30 694 758 6765
-            </a>
+            </Link>
           </p>
           <p className="mt-4 text-gray-600 text-sm">
             GIAMALAKI 25, 71202, Heraklion, Crete, Greece
@@ -97,46 +98,46 @@ export default function Footer() {
             Follow Us
           </h3>
           <div className="flex space-x-4 text-gray-600">
-            <a
+            <Link
               href="https://www.facebook.com/profile.php?id=61577812032078&locale=el_GR"
               target="_blank"
               rel="noopener noreferrer"
               className="hover:text-blue-600"
             >
               <FaFacebookF size={20} />
-            </a>
-            <a
+            </Link>
+            <Link
               href="https://www.instagram.com/svk.roboticsgroup/"
               target="_blank"
               rel="noopener noreferrer"
               className="hover:text-pink-500"
             >
               <FaInstagram size={20} />
-            </a>
-            <a
+            </Link>
+            <Link
               href="https://www.linkedin.com/company/svk-robotics/posts/?feedView=all"
               target="_blank"
               rel="noopener noreferrer"
               className="hover:text-blue-700"
             >
               <FaLinkedinIn size={20} />
-            </a>
-            <a
+            </Link>
+            <Link
               href="https://github.com/SVKROBOTICS"
               target="_blank"
               rel="noopener noreferrer"
               className="hover:text-gray-500"
             >
               <FaGithub size={20} />
-            </a>
-            <a
+            </Link>
+            <Link
               href="https://www.youtube.com/channel/UCCMymTw3tMX5TtMmOzgZi0g?app=desktop"
               target="_blank"
               rel="noopener noreferrer"
               className="hover:text-red-600"
             >
               <FaYoutube size={20} />
-            </a>
+            </Link>
           </div>
         </div>
 
