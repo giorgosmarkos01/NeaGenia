@@ -12,7 +12,7 @@ const compat = new FlatCompat({
 const eslintConfig = [
   ...compat.extends("next/core-web-vitals", "next/typescript"),
 
-  // ➕ Προσθέτουμε override για να απενεργοποιήσουμε το rule
+  // ✅ Προσθήκη override για να κάνεις disable το rule global
   {
     rules: {
       "@typescript-eslint/no-explicit-any": "off",
