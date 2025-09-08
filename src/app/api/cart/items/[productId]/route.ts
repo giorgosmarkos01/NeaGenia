@@ -4,7 +4,10 @@ import { db } from "@/lib/db";
 import { v4 as uuidv4 } from "uuid";
 import { auth } from "@clerk/nextjs/server";
 
-// ---- shared helpers
+// ----------------------
+// Helpers
+// ----------------------
+
 function mapRows(rows: any[]) {
   return rows.map((r: any) => ({
     productId: r.productId,
@@ -44,14 +47,15 @@ async function fetchCartItems(cartId: string) {
 
 async function resolveCartId() {
   const { userId } = await auth();
-  const cookieStore = await cookies();
+  const cookieStore = cookies(); // ✅ sync, no await
 
   if (userId) {
     const [[existing]]: any = await db.query(
       `SELECT id FROM carts WHERE user_id = ? LIMIT 1`,
       [userId]
     );
-    let userCartId = existing?.id;
+
+    let userCartId: string = existing?.id;
     if (!userCartId) {
       userCartId = uuidv4();
       await db.query(
@@ -59,28 +63,33 @@ async function resolveCartId() {
         [userCartId, userId]
       );
     }
+
     return { cartId: userCartId };
   }
 
-  let cartId = cookieStore.get("cartId")?.value;
+  // Guest user (no auth)
+  let cartId = (await cookieStore).get("cartId")?.value;
   if (!cartId) {
     cartId = uuidv4();
     await db.query(`INSERT INTO carts (id, status) VALUES (?, 'open')`, [
       cartId,
     ]);
   }
+
   return { cartId };
 }
 
-// ✅ FIXED PATCH Handler
+// ----------------------
+// PATCH qty
+// ----------------------
+
 export async function PATCH(
   req: NextRequest,
   context: { params: { productId: string } }
 ) {
   const { productId } = context.params;
-
-  const body = await req.json();
-  const newQty = Number(body.qty);
+  const { qty } = await req.json();
+  const newQty = Number(qty);
 
   if (!productId || !Number.isFinite(newQty) || newQty < 1) {
     return NextResponse.json({ error: "Invalid qty" }, { status: 400 });
