@@ -75,9 +75,9 @@ async function resolveCartId() {
 // ---- PATCH qty --------------------------------------------------
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: { productId: string } }
+  context: { params: { productId: string } }
 ) {
-  const { productId } = params;
+  const { productId } = context.params;
   const { qty } = await req.json();
 
   const newQty = Number(qty);
