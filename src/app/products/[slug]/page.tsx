@@ -9,6 +9,7 @@ import remarkGfm from "remark-gfm";
 import Breadcrumbs from "@/components/Breadcrumbs";
 import { titleCaseFromSlug } from "@/lib/titleCaseFromSlug";
 import StockPill from "@/components/StockPill";
+import Image from "next/image";
 const fallbackImage = "/logo.png";
 const baseUrl = "https://svkroboticsedu.com";
 
@@ -78,11 +79,15 @@ export default function ProductDetailsPage() {
               ]}
               separator="/"
             />
-            <div className="bg-gray-100 rounded-lg flex items-center justify-center p-4">
-              <img
-                src={selectedImage}
+
+            <div className="bg-gray-100 rounded-lg flex items-center justify-center p-4 h-[400px] relative">
+              <Image
+                src={selectedImage || "/fallback.png"}
                 alt={product.name}
-                className="w-full max-h-[400px] object-contain"
+                fill
+                className="object-contain"
+                sizes="(max-width: 768px) 100vw, 700px"
+                priority // optional: για hero image
               />
             </div>
           </div>
@@ -91,15 +96,21 @@ export default function ProductDetailsPage() {
               (img, index) => {
                 const fullImg = img.startsWith("/") ? baseUrl + img : img;
                 return (
-                  <img
+                  <div
                     key={index}
-                    src={fullImg}
-                    alt={`${product.name} image ${index + 1}`}
-                    className={`w-16 h-16 rounded-md border cursor-pointer object-cover ${
+                    className={`relative w-16 h-16 rounded-md border overflow-hidden cursor-pointer ${
                       selectedImage === fullImg ? "ring-2 ring-orange-500" : ""
                     }`}
                     onClick={() => setSelectedImage(fullImg)}
-                  />
+                  >
+                    <Image
+                      src={fullImg}
+                      alt={`${product.name} image ${index + 1}`}
+                      fill
+                      className="object-cover rounded-md"
+                      sizes="64px"
+                    />
+                  </div>
                 );
               }
             )}

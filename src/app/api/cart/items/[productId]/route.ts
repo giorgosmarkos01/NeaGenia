@@ -1,10 +1,10 @@
-import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
+import { cookies } from "next/headers";
 import { db } from "@/lib/db";
 import { v4 as uuidv4 } from "uuid";
 import { auth } from "@clerk/nextjs/server";
 
-// ---- shared helpers (same mapping as elsewhere)
+// ---- shared helpers
 function mapRows(rows: any[]) {
   return rows.map((r: any) => ({
     productId: r.productId,
@@ -19,24 +19,24 @@ function mapRows(rows: any[]) {
 async function fetchCartItems(cartId: string) {
   const [rows]: any = await db.query(
     `
-      SELECT
-        ci.product_id AS productId,
-        i.slug AS slug,
-        i.name AS name,
-        COALESCE(ci.price_at_add, i.price) AS price,
-        ci.qty AS qty,
-        (
-          SELECT ii.imageUrl
-          FROM item_images ii
-          WHERE ii.item_id = i.id
-          ORDER BY ii.created_at ASC
-          LIMIT 1
-        ) AS imageUrl
-      FROM cart_items ci
-      JOIN item i ON i.id = ci.product_id
-      WHERE ci.cart_id = ?
-      ORDER BY ci.created_at ASC
-    `,
+    SELECT
+      ci.product_id AS productId,
+      i.slug AS slug,
+      i.name AS name,
+      COALESCE(ci.price_at_add, i.price) AS price,
+      ci.qty AS qty,
+      (
+        SELECT ii.imageUrl
+        FROM item_images ii
+        WHERE ii.item_id = i.id
+        ORDER BY ii.created_at ASC
+        LIMIT 1
+      ) AS imageUrl
+    FROM cart_items ci
+    JOIN item i ON i.id = ci.product_id
+    WHERE ci.cart_id = ?
+    ORDER BY ci.created_at ASC
+  `,
     [cartId]
   );
   return mapRows(rows);
@@ -51,7 +51,7 @@ async function resolveCartId() {
       `SELECT id FROM carts WHERE user_id = ? LIMIT 1`,
       [userId]
     );
-    let userCartId: string = existing?.id;
+    let userCartId = existing?.id;
     if (!userCartId) {
       userCartId = uuidv4();
       await db.query(
@@ -72,15 +72,16 @@ async function resolveCartId() {
   return { cartId };
 }
 
-// ---- PATCH qty --------------------------------------------------
+// ✅ FIXED PATCH Handler
 export async function PATCH(
-  req: Request,
-  { params }: { params: { productId: string } }
+  req: NextRequest,
+  context: { params: { productId: string } }
 ) {
-  const { productId } = params;
-  const { qty } = await req.json();
+  const { productId } = context.params;
 
-  const newQty = Number(qty);
+  const body = await req.json();
+  const newQty = Number(body.qty);
+
   if (!productId || !Number.isFinite(newQty) || newQty < 1) {
     return NextResponse.json({ error: "Invalid qty" }, { status: 400 });
   }
