@@ -5,6 +5,7 @@ import { setCart } from "@/store/cartSlice";
 import { useRef, useState } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
+import { RootState } from "@/store/store"; // ✅ Προσθέτουμε το RootState από το store σου
 
 type ApiProduct = {
   id: string;
@@ -14,7 +15,7 @@ type ApiProduct = {
   slug?: string;
 };
 
-type CartItem = { productId: string; qty: number };
+import type { CartItem } from "@/store/cartSlice";
 
 function isEnabled(status?: string) {
   const s = (status || "").toLowerCase();
@@ -23,7 +24,10 @@ function isEnabled(status?: string) {
 
 export default function AddToCartButton({ product }: { product: ApiProduct }) {
   const dispatch = useDispatch();
-  const items: CartItem[] = useSelector((s: any) => s.cart?.items ?? []);
+  const items: CartItem[] = useSelector(
+    (state: RootState) => state.cart?.items ?? []
+  ); // ✅ Χρησιμοποιούμε RootState αντί για any
+
   const storeQty = items.find((it) => it.productId === product.id)?.qty ?? 0;
 
   const [loading, setLoading] = useState(false);
@@ -31,8 +35,7 @@ export default function AddToCartButton({ product }: { product: ApiProduct }) {
   const enabled = isEnabled(product.stock_status);
   const priceNum = Number.parseFloat(String(product.price));
 
-  // --- fetch helpers with robust parsing ---
-  const parseJsonSafe = async (res: Response) => {
+  const parseJsonSafe = async (res: Response): Promise<any> => {
     const text = await res.text();
     try {
       return text ? JSON.parse(text) : null;
@@ -42,13 +45,13 @@ export default function AddToCartButton({ product }: { product: ApiProduct }) {
     }
   };
 
-  const postDelta = async (delta: number) => {
+  const postDelta = async (delta: number): Promise<{ items: CartItem[] }> => {
     const res = await fetch("/api/cart/items", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         productId: product.id,
-        qty: delta, // server will do qty = qty + delta
+        qty: delta,
         price: Number.isFinite(priceNum) ? priceNum : undefined,
       }),
     });
@@ -60,7 +63,7 @@ export default function AddToCartButton({ product }: { product: ApiProduct }) {
     return data;
   };
 
-  const deleteItem = async () => {
+  const deleteItem = async (): Promise<{ items: CartItem[] }> => {
     const res = await fetch("/api/cart/items", {
       method: "DELETE",
       headers: { "Content-Type": "application/json" },
@@ -74,13 +77,13 @@ export default function AddToCartButton({ product }: { product: ApiProduct }) {
     return data;
   };
 
-  const run = async (fn: () => Promise<any>) => {
+  const run = async (fn: () => Promise<{ items: CartItem[] }>) => {
     if (lock.current) return;
     lock.current = true;
     setLoading(true);
     try {
       const data = await fn();
-      dispatch(setCart(data.items || [])); // single source of truth = server
+      dispatch(setCart(data.items || []));
     } catch (e) {
       console.error("[cart] sync error", e);
     } finally {
@@ -89,7 +92,6 @@ export default function AddToCartButton({ product }: { product: ApiProduct }) {
     }
   };
 
-  // --- Handlers ---
   const handleAdd = () => {
     if (!enabled || loading) return;
     run(() => postDelta(+1));
@@ -103,15 +105,12 @@ export default function AddToCartButton({ product }: { product: ApiProduct }) {
   const handleMinus = () => {
     if (loading) return;
     if (storeQty > 1) {
-      // decrement on server
       run(() => postDelta(-1));
     } else {
-      // going to zero -> remove row on server
       run(() => deleteItem());
     }
   };
 
-  // --- Styles ---
   const btn =
     "px-4 py-2 text-sm font-medium rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-400";
   const orange =
