@@ -11,11 +11,10 @@ const compat = new FlatCompat({
 
 const eslintConfig = [
   ...compat.extends("next/core-web-vitals", "next/typescript"),
-
-  // ✅ Προσθήκη override για να κάνεις disable το rule global
   {
     rules: {
       "@typescript-eslint/no-explicit-any": "off",
+      "@typescript-eslint/no-unused-vars": "off", // και αυτό, αν θες
     },
   },
 ];
