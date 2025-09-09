@@ -34,6 +34,10 @@ export async function createPaymentOrder(
           phone: customer.phone,
           countryCode: customer.countryCode ?? "GR",
         },
+        preAuth: false,
+        allowRecurring: false,
+        paymentTimeout: 300,
+        returnUrl: "https://efthymios.vercel.app/thank-you", // ✅ ΧΩΡΙΣ αυτό δεν έχει redirectUrl
       }),
     }
   );
