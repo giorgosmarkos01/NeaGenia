@@ -49,5 +49,8 @@ export async function createPaymentOrder(
     throw new Error("Failed to create payment order");
   }
 
-  return JSON.parse(text);
+  const data = JSON.parse(text);
+  console.log("[DEBUG createPaymentOrder PARSED RESPONSE]", data);
+
+  return data;
 }
