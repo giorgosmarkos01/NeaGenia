@@ -38,7 +38,7 @@ export async function createPaymentOrder(
         preAuth: false,
         allowRecurring: false,
         paymentTimeout: 300,
-        returnUrl: "https://efthymios.vercel.app/thank-you", // ✅ Χρειάζεται για redirect
+        returnUrl: "https://efthymios.vercel.app/thank-you", // ✅ Χρειάζεται για redirectlkl
       }),
     }
   );
