@@ -34,10 +34,11 @@ export async function createPaymentOrder(
           phone: customer.phone,
           countryCode: customer.countryCode ?? "GR",
         },
+        sourceCode: process.env.VIVA_SOURCE_CODE, //
         preAuth: false,
         allowRecurring: false,
         paymentTimeout: 300,
-        returnUrl: "https://efthymios.vercel.app/thank-you", // ✅ ΧΩΡΙΣ αυτό δεν έχει redirectUrl
+        returnUrl: "https://efthymios.vercel.app/thank-you", // ✅ Χρειάζεται για redirect
       }),
     }
   );
@@ -49,8 +50,16 @@ export async function createPaymentOrder(
     throw new Error("Failed to create payment order");
   }
 
-  const data = JSON.parse(text);
-  console.log("[DEBUG createPaymentOrder PARSED RESPONSE]", data);
+  const parsed = JSON.parse(text);
+  console.log("[DEBUG createPaymentOrder PARSED RESPONSE]", parsed);
 
-  return data;
+  // ✅ fallback για redirectUrl αν λείπει (π.χ. παλιό bug ή misconfig)
+  const redirectUrl =
+    parsed.redirectUrl ||
+    `https://demo.vivapayments.com/web/checkout?ref=${parsed.orderCode}`;
+
+  return {
+    orderCode: parsed.orderCode,
+    redirectUrl,
+  };
 }
