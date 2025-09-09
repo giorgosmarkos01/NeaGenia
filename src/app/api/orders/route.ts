@@ -202,6 +202,11 @@ export async function POST(req: Request) {
         phone: phone_number,
       }
     );
+    // ✅ Add this line just before extracting orderCode:
+    console.log(
+      "[DEBUG Viva full response]",
+      JSON.stringify(vivaResponse, null, 2)
+    );
 
     const vivaOrderCode = vivaResponse.orderCode?.toString();
     if (!vivaOrderCode) throw new Error("Viva orderCode missing");
