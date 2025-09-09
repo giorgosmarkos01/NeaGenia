@@ -3,11 +3,13 @@ import { db } from "@/lib/db";
 
 const SUCCESS_EVENT_TYPE_ID = 1796;
 const SUCCESS_STATUS_ID = "F"; // "F" σημαίνει επιτυχής πληρωμή στην Viva
-
+const merchantId = process.env.VIVA_MERCHANT_ID!;
+const apiKey = process.env.VIVA_API_KEY!;
 // Για την επαλήθευση (Verify) της Viva
 export async function GET() {
   return NextResponse.json({
-    Key: "e5287c12-e8b6-4923-b711-d3fc286699ba", // άλλαξε με το δικό σου!
+    Key: "35E48D31A649407351E56A5D7FAE05EC300C866B", //curl -X GET https://demo.vivapayments.com/api/messages/config/token \
+    //  -H "Authorization: Basic ZTUyODdjMTItZThiNi00OTIzLWI3MTEtZDNmYzI4NjY5OWJhOnpwUlJ1ZA=="
   });
 }
 
