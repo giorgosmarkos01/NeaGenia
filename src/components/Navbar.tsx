@@ -9,6 +9,7 @@ import { SignedIn, SignedOut, SignInButton, UserButton } from "@clerk/nextjs";
 import { useAuth } from "@clerk/nextjs"; // (client hook)
 import SearchBar from "./SearchBar";
 import { clearCart, setCart } from "@/store/cartSlice"; // NEW
+import { setWishlist, clearWishlist } from "@/store/wishlistSlice";
 
 function cn(...xs: (string | false | null | undefined)[]) {
   return xs.filter(Boolean).join(" ");
@@ -37,24 +38,35 @@ export default function Navbar() {
     (async () => {
       try {
         if (!isSignedIn) {
-          // καθάρισε αμέσως το badge στο sign-out
           dispatch(clearCart());
+          dispatch(clearWishlist());
+          return;
         }
-        const res = await fetch("/api/cart", { cache: "no-store" });
-        if (!res.ok) return;
-        const data = await res.json();
-        if (!cancelled) {
-          dispatch(setCart(data.items || []));
+
+        const [cartRes, wishlistRes] = await Promise.all([
+          fetch("/api/cart", { cache: "no-store" }),
+          fetch("/api/wishlist", { cache: "no-store" }),
+        ]);
+
+        if (cartRes.ok) {
+          const cartData = await cartRes.json();
+          if (!cancelled) dispatch(setCart(cartData.items || []));
+        }
+
+        if (wishlistRes.ok) {
+          const wishlistData = await wishlistRes.json();
+          const ids = wishlistData.map((item: any) => item.product_id);
+          if (!cancelled) dispatch(setWishlist(ids));
         }
       } catch {
-        /* ignore */
+        // ignore
       }
     })();
 
     return () => {
       cancelled = true;
     };
-  }, [isSignedIn, dispatch]); // NEW
+  }, [isSignedIn, dispatch]);
 
   const links = [
     { href: "/", label: "Home" },
@@ -131,6 +143,11 @@ export default function Navbar() {
                   label="Orders"
                   labelIcon="📦"
                   href="/UserOrderHistory"
+                />
+                <UserButton.Link
+                  label="WishList"
+                  labelIcon="📦"
+                  href="/wishlist"
                 />
               </UserButton.MenuItems>
             </UserButton>
