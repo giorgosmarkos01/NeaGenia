@@ -127,7 +127,11 @@ export default function Navbar() {
           <SignedIn>
             <UserButton afterSignOutUrl="/">
               <UserButton.MenuItems>
-                <UserButton.Link label="Orders" labelIcon="📦" href="/orders" />
+                <UserButton.Link
+                  label="Orders"
+                  labelIcon="📦"
+                  href="/UserOrderHistory"
+                />
               </UserButton.MenuItems>
             </UserButton>
           </SignedIn>
