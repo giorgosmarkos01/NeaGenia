@@ -3,16 +3,13 @@ import { db } from "@/lib/db";
 import { NextRequest, NextResponse } from "next/server";
 
 // ✅ Add to wishlist
-export async function POST(
-  req: NextRequest,
-  { params }: { params: { productId: string } }
-) {
+export async function POST(req: NextRequest, context: any) {
   const { userId } = await auth();
   if (!userId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const { productId } = params;
+  const productId = context.params.productId;
 
   try {
     await db.query(
@@ -27,16 +24,13 @@ export async function POST(
 }
 
 // ✅ Remove from wishlist
-export async function DELETE(
-  req: NextRequest,
-  { params }: { params: { productId: string } }
-) {
+export async function DELETE(req: NextRequest, context: any) {
   const { userId } = await auth();
   if (!userId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const { productId } = params;
+  const productId = context.params.productId;
 
   try {
     await db.query(

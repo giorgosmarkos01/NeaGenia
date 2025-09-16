@@ -1,3 +1,5 @@
+// src/app/api/wishlist/route.ts
+
 import { auth } from "@clerk/nextjs/server";
 import { db } from "@/lib/db";
 import { NextResponse } from "next/server";
@@ -10,7 +12,13 @@ export async function GET() {
 
   const [rows]: any = await db.query(
     `
-    SELECT wi.product_id, i.name, i.slug, i.price 
+    SELECT 
+      wi.product_id as id,
+      i.name,
+      i.slug,
+      i.price,
+      i.description_short,
+      i.stock_status
     FROM wishlist_items wi
     JOIN item i ON i.id = wi.product_id
     WHERE wi.user_id = ?
