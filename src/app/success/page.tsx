@@ -33,7 +33,7 @@ export default function SuccessPage() {
 
         <Link
           href="/products"
-          className="px-6 py-3 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition"
+          className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-orange-700 transition"
         >
           Continue Shopping
         </Link>
