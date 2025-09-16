@@ -1,21 +1,18 @@
 import { auth } from "@clerk/nextjs/server";
 import { db } from "@/lib/db";
-import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
-type Context = {
-  params: {
-    productId: string;
-  };
-};
-
-export async function POST(req: NextRequest, context: Context) {
+// ✅ Add to wishlist
+export async function POST(
+  req: NextRequest,
+  { params }: { params: { productId: string } }
+) {
   const { userId } = await auth();
   if (!userId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const productId = context.params.productId;
+  const { productId } = params;
 
   try {
     await db.query(
@@ -29,13 +26,17 @@ export async function POST(req: NextRequest, context: Context) {
   }
 }
 
-export async function DELETE(req: NextRequest, context: Context) {
+// ✅ Remove from wishlist
+export async function DELETE(
+  req: NextRequest,
+  { params }: { params: { productId: string } }
+) {
   const { userId } = await auth();
   if (!userId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const productId = context.params.productId;
+  const { productId } = params;
 
   try {
     await db.query(
