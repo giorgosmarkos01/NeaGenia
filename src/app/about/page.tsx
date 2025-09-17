@@ -36,9 +36,9 @@ export default function AboutPage() {
 
           <p>
             At SVK Robotics, we believe education should be accessible, modern,
-            and future-ready. That's why we continuously invest in innovation,
-            educational resources, and partnerships with leading suppliers in
-            the tech education space.
+            and future-ready. That&apos;s why we continuously invest in
+            innovation, educational resources, and partnerships with leading
+            suppliers in the tech education space.
           </p>
         </section>
 
@@ -56,7 +56,7 @@ export default function AboutPage() {
 
         <div className="mt-10">
           <p className="text-gray-600 italic">
-            We're here to make learning technology more fun, practical, and
+            We&apos;re here to make learning technology more fun, practical, and
             future-focused!
           </p>
         </div>
