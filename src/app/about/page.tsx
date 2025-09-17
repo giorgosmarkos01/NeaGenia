@@ -14,7 +14,7 @@ export default function AboutPage() {
 
         <section className="space-y-6 leading-relaxed">
           <p>
-            <strong>SVK Robotics</strong> is an innovative company focused on
+            <strong>SVK Robotics </strong> is an innovative company focused on
             robotics and technology education. Our mission is to empower
             creativity, inspire innovation, and promote hands-on technical
             knowledge for the next generation of thinkers, makers, and problem
