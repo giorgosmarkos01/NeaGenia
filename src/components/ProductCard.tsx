@@ -55,7 +55,12 @@ export default function ProductCard({ product }: ProductCardProps) {
       {isSignedIn && (
         <button
           onClick={toggleWishlist}
-          className="absolute top-2 right-2 sm:top-3 sm:right-3 p-1.5 sm:p-2 bg-white rounded-full shadow hover:scale-110 transition"
+          disabled={loading}
+          title={liked ? "Αφαίρεση από αγαπημένα" : "Προσθήκη στα αγαπημένα"}
+          aria-label="Εναλλαγή αγαπημένων"
+          className={`absolute top-2 right-2 sm:top-3 sm:right-3 p-2 rounded-full shadow transition 
+                ${liked ? "bg-orange-100" : "bg-white"} 
+                hover:scale-110 focus:outline-none`}
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -69,11 +74,11 @@ export default function ProductCard({ product }: ProductCardProps) {
               strokeLinecap="round"
               strokeLinejoin="round"
               d="M12 21.35l-1.45-1.32C5.4 15.36 2 
-               12.28 2 8.5 2 5.42 4.42 3 7.5 3
-               c1.74 0 3.41 0.81 4.5 2.09C13.09 3.81 
-               14.76 3 16.5 3 19.58 3 22 5.42 22 
-               8.5c0 3.78-3.4 6.86-8.55 
-               11.54L12 21.35z"
+           12.28 2 8.5 2 5.42 4.42 3 7.5 3
+           c1.74 0 3.41 0.81 4.5 2.09C13.09 3.81 
+           14.76 3 16.5 3 19.58 3 22 5.42 22 
+           8.5c0 3.78-3.4 6.86-8.55 
+           11.54L12 21.35z"
             />
           </svg>
         </button>

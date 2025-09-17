@@ -1,15 +1,19 @@
+import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { db } from "@/lib/db";
-import { NextRequest, NextResponse } from "next/server";
 
-// ✅ Add to wishlist
-export async function POST(req: NextRequest, context: any) {
+// ✅ POST: Add to wishlist
+export async function POST(
+  req: NextRequest,
+  { params }: { params: { productId: string } } // ✅ σωστό destructuring
+) {
   const { userId } = await auth();
+
   if (!userId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const productId = context.params.productId;
+  const productId = params.productId;
 
   try {
     await db.query(
@@ -19,18 +23,25 @@ export async function POST(req: NextRequest, context: any) {
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("[wishlist] POST error:", error);
-    return NextResponse.json({ error: "Failed to add" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Failed to add to wishlist" },
+      { status: 500 }
+    );
   }
 }
 
-// ✅ Remove from wishlist
-export async function DELETE(req: NextRequest, context: any) {
+// ✅ DELETE: Remove from wishlist
+export async function DELETE(
+  req: NextRequest,
+  { params }: { params: { productId: string } } // ✅ ίδιο πράγμα
+) {
   const { userId } = await auth();
+
   if (!userId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const productId = context.params.productId;
+  const productId = params.productId;
 
   try {
     await db.query(
@@ -40,6 +51,9 @@ export async function DELETE(req: NextRequest, context: any) {
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("[wishlist] DELETE error:", error);
-    return NextResponse.json({ error: "Failed to remove" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Failed to remove from wishlist" },
+      { status: 500 }
+    );
   }
 }
