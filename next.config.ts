@@ -1,8 +1,20 @@
 import type { NextConfig } from "next";
+import { join } from "path";
 
-const nextConfig = {
+const nextConfig: NextConfig = {
   images: {
-    domains: ["svkroboticsedu.com"], // Add your image host here
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "svkroboticsedu.com",
+        port: "",
+        pathname: "/**",
+      },
+    ],
+  },
+
+  turbopack: {
+    root: join(__dirname), // ✅ Εδώ ξεκαθαρίζεις το σωστό workspace root
   },
 };
 

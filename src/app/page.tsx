@@ -1,7 +1,7 @@
 import Navbar from "@/components/Navbar";
 import { Product } from "@/types/product";
 import ProductCard from "@/components/ProductCard";
-import FeaturedProducts from "@/app/components/FeaturedProducts";
+import FeaturedProducts from "@/components/FeaturedProducts";
 import Footer from "@/components/Footer";
 import HeroBanner from "@/components/HeroBanner";
 async function getProducts(): Promise<Product[]> {
