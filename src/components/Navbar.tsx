@@ -8,7 +8,7 @@ import { useEffect, useState } from "react"; // NEW
 import { SignedIn, SignedOut, SignInButton, UserButton } from "@clerk/nextjs";
 import { useAuth } from "@clerk/nextjs"; // (client hook)
 import SearchBar from "./SearchBar";
-import { clearCart, setCart } from "@/store/cartSlice"; // NEW
+import { clearCart, setCart } from "@/store/cartSlice"; // NEWjj
 import { setWishlist, clearWishlist } from "@/store/wishlistSlice";
 
 function cn(...xs: (string | false | null | undefined)[]) {
