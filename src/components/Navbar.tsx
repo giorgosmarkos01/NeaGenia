@@ -38,8 +38,8 @@ export default function Navbar() {
     (async () => {
       try {
         if (!isSignedIn) {
-          dispatch(clearCart());
-          dispatch(clearWishlist());
+          // dispatch(clearCart());
+          //dispatch(clearWishlist());
           return;
         }
 
