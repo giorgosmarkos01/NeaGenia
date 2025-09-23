@@ -2,18 +2,15 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { db } from "@/lib/db";
 
-// ✅ POST: Add to wishlist
-export async function POST(
-  req: NextRequest,
-  { params }: { params: { productId: string } } // ✅ σωστό destructuring
-) {
+export async function POST(req: NextRequest) {
   const { userId } = await auth();
 
   if (!userId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const productId = params.productId;
+  const url = new URL(req.url);
+  const productId = url.pathname.split("/").pop(); // Extract το ID από το URL
 
   try {
     await db.query(
@@ -30,18 +27,15 @@ export async function POST(
   }
 }
 
-// ✅ DELETE: Remove from wishlist
-export async function DELETE(
-  req: NextRequest,
-  { params }: { params: { productId: string } } // ✅ ίδιο πράγμα
-) {
+export async function DELETE(req: NextRequest) {
   const { userId } = await auth();
 
   if (!userId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const productId = params.productId;
+  const url = new URL(req.url);
+  const productId = url.pathname.split("/").pop();
 
   try {
     await db.query(
