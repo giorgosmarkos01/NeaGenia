@@ -53,14 +53,14 @@ export default function HeroBanner() {
           >
             {/* Left Side */}
             <div className="md:w-1/2 space-y-4">
-              <p className="text-orange-600 font-semibold text-sm">
+              <p className="title-of-the-product font-semibold text-sm">
                 {slide.subtitle}
               </p>
               <h1 className="text-3xl md:text-4xl font-bold text-gray-900 leading-snug">
                 {slide.title}
               </h1>
               <div className="flex gap-4 mt-6">
-                <button className="bg-orange-600 text-white px-6 py-3 rounded-full hover:bg-orange-700 transition">
+                <button className="add-button text-white px-6 py-3 rounded-full title-of-the-product2 transition">
                   {slide.button1}
                 </button>
                 <button className="flex items-center gap-2 text-gray-700 hover:text-gray-900 transition">
@@ -89,7 +89,7 @@ export default function HeroBanner() {
           <span
             key={index}
             className={`w-3 h-3 rounded-full cursor-pointer transition ${
-              index === currentSlide ? "bg-orange-500" : "bg-gray-300"
+              index === currentSlide ? "add-button" : "bg-gray-300"
             }`}
             onClick={() => setCurrentSlide(index)}
           ></span>

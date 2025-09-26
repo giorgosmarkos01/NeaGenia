@@ -31,7 +31,7 @@ export default function Footer() {
 
         {/* Company Links */}
         <div>
-          <h3 className="text-lg font-semibold mb-3 text-orange-500">
+          <h3 className="text-lg font-semibold mb-3 title-of-the-product">
             Company
           </h3>
           <ul className="space-y-2 text-gray-600">
@@ -60,7 +60,7 @@ export default function Footer() {
 
         {/* Contact */}
         <div>
-          <h3 className="text-lg font-semibold mb-3 text-orange-500">
+          <h3 className="text-lg font-semibold mb-3 title-of-the-product">
             Get in touch
           </h3>
           <p className="text-gray-600 text-sm">
@@ -94,7 +94,7 @@ export default function Footer() {
       <div className="max-w-6xl mx-auto px-6 mt-8 grid grid-cols-1 sm:grid-cols-3 gap-8">
         {/* Follow Us */}
         <div>
-          <h3 className="text-lg font-semibold mb-3 text-orange-500">
+          <h3 className="text-lg font-semibold mb-3 title-of-the-product">
             Follow Us
           </h3>
           <div className="flex space-x-4 text-gray-600">
@@ -143,7 +143,7 @@ export default function Footer() {
 
         {/* Payments */}
         <div>
-          <h3 className="text-lg font-semibold mb-3 text-orange-500">
+          <h3 className="text-lg font-semibold mb-3 title-of-the-product">
             Accepted Payments
           </h3>
           <div className="flex flex-wrap gap-4">
@@ -172,7 +172,7 @@ export default function Footer() {
         {/* Shipping */}
         {/* Shipping */}
         <div>
-          <h3 className="text-lg font-semibold mb-3 text-orange-500">
+          <h3 className="text-lg font-semibold mb-3 title-of-the-product">
             Shipping Partners
           </h3>
           <div className="flex flex-wrap gap-4 items-center">
@@ -203,7 +203,7 @@ export default function Footer() {
               viewBox="0 0 24 24"
               strokeWidth={2}
               stroke="currentColor"
-              className="mx-auto h-8 w-8 text-orange-500 mb-3"
+              className="mx-auto h-8 w-8 title-of-the-product mb-3"
             >
               <path
                 strokeLinecap="round"
@@ -225,7 +225,7 @@ export default function Footer() {
               viewBox="0 0 24 24"
               strokeWidth={2}
               stroke="currentColor"
-              className="mx-auto h-8 w-8 text-orange-500 mb-3"
+              className="mx-auto h-8 w-8 title-of-the-product mb-3"
             >
               <path
                 strokeLinecap="round"
@@ -247,7 +247,7 @@ export default function Footer() {
               viewBox="0 0 24 24"
               strokeWidth={2}
               stroke="currentColor"
-              className="mx-auto h-8 w-8 text-orange-500 mb-3"
+              className="mx-auto h-8 w-8 title-of-the-product mb-3"
             >
               <path
                 strokeLinecap="round"
@@ -269,7 +269,7 @@ export default function Footer() {
               viewBox="0 0 24 24"
               strokeWidth={2}
               stroke="currentColor"
-              className="mx-auto h-8 w-8 text-orange-500 mb-3"
+              className="mx-auto h-8 w-8 title-of-the-product mb-3"
             >
               <path
                 strokeLinecap="round"

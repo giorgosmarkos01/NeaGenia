@@ -85,8 +85,9 @@ export default function ProductCard({ product }: ProductCardProps) {
       )}
 
       {/* Image */}
-      <Link href={`/products/${product.slug}`}>
-        <div className="w-full h-36 sm:h-44 flex items-center justify-center bg-gray-50 rounded-lg mb-3 sm:mb-4 overflow-hidden">
+
+      <div className="w-full h-36 sm:h-44 flex items-center justify-center bg-gray-50 rounded-lg mb-3 sm:mb-4 overflow-hidden relative">
+        <Link href={`/products/${product.slug}`}>
           <Image
             src={imageUrl}
             alt={product.name}
@@ -96,12 +97,16 @@ export default function ProductCard({ product }: ProductCardProps) {
             style={{ maxHeight: "10rem" }}
             sizes="(min-width: 640px) 160px, 128px"
           />
+        </Link>
+        {/* Add to Cart Button τελείως κάτω-αριστερά */}
+        <div className="absolute bottom-0 left-0">
+          <AddToCartButton product={product} />
         </div>
-      </Link>
+      </div>
 
       {/* Title */}
       <Link href={`/products/${product.slug}`}>
-        <h2 className="text-sm sm:text-lg text-black font-semibold mb-1 truncate">
+        <h2 className="title-of-the-product  text-sm sm:text-lg  font-semibold mb-1 truncate">
           {product.name}
         </h2>
       </Link>
@@ -112,14 +117,32 @@ export default function ProductCard({ product }: ProductCardProps) {
       </p>
 
       {/* Price & Add to Cart */}
-      <div className="flex justify-between items-center mt-auto">
-        <p className="text-base sm:text-xl font-bold text-gray-900">
-          {product.price} €
-        </p>
-        <span>
-          <AddToCartButton product={product} />
-          <StockPill status={product.stock_status} />
-        </span>
+      <div className="mt-0">
+        {/* Γραμμή με τιμή + stock (desktop) */}
+        <div className="flex justify-between items-center">
+          <p className="text-base sm:text-xl font-bold text-gray-900">
+            {product.price} €
+          </p>
+
+          {/* Δείξε πάντα το StockPill σε desktop */}
+          <span className="hidden sm:inline-block">
+            <StockPill status={product.stock_status} />
+          </span>
+
+          {/* Αν ΔΕΝ είναι available_after_ordering → δείξε το StockPill και στο mobile */}
+          {product.stock_status !== "available_after_ordering" && (
+            <span className="inline-block sm:hidden">
+              <StockPill status={product.stock_status} />
+            </span>
+          )}
+        </div>
+
+        {/* Αν είναι available_after_ordering → δείξε το StockPill κάτω από την τιμή μόνο σε mobile */}
+        {product.stock_status === "available_after_ordering" && (
+          <div className="sm:hidden mt-1">
+            <StockPill status={product.stock_status} />
+          </div>
+        )}
       </div>
     </div>
   );

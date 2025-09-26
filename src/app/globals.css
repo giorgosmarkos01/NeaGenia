@@ -6,3 +6,21 @@
     @apply text-black;
   }
 }
+@layer components {
+  .add-button {
+    @apply text-white disabled:opacity-60 disabled:cursor-not-allowed;
+    background-color: #7eccf0; /* default */
+  }
+
+  .add-button:hover {
+    background-color: #007bff; /* hover */
+  }
+  .title-of-the-product {
+    @apply text-gray-900 font-semibold;
+    color: #192b5e; /* default */
+  }
+  .baby-blue {
+    @apply text-white disabled:opacity-60 disabled:cursor-not-allowed;
+    background-color: #7eccf0; /* default */
+  }
+}
