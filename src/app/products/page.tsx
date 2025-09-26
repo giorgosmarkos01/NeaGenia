@@ -13,7 +13,7 @@ export const metadata: Metadata = {
 };
 
 type SearchParams = { category?: string | string[] };
-type PageProps = { searchParams: SearchParams };
+type PageProps = { searchParams: Promise<SearchParams> }; // 👈 now a Promise
 
 const API = process.env.NEXT_PUBLIC_API_BASE_URL!;
 
@@ -54,7 +54,7 @@ function buildCategories(items: any[]): Category[] {
 }
 
 export default async function ProductsPage({ searchParams }: PageProps) {
-  const sp = searchParams;
+  const sp = await searchParams; // 👈 must await
 
   // normalize to a single lowercase string
   const activeCategory = Array.isArray(sp.category)
