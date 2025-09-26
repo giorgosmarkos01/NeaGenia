@@ -13,7 +13,7 @@ export const metadata: Metadata = {
 };
 
 type SearchParams = { category?: string | string[] };
-type PageProps = { searchParams: Promise<SearchParams> }; // 👈 now a Promise
+type PageProps = { searchParams: Promise<SearchParams> }; // 👈 now a Promisekjkjkjkj
 
 const API = process.env.NEXT_PUBLIC_API_BASE_URL!;
 
