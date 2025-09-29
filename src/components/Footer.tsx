@@ -115,12 +115,7 @@ export default function Footer() {
               +30 281 600 8699
             </Link>
           </p>
-          <p className="text-gray-600 text-sm">
-            Mobile:{" "}
-            <Link href="tel:+306947586765" className="hover:underline">
-              +30 694 758 6765
-            </Link>
-          </p>
+
           <p className="mt-4 text-gray-600 text-sm">
             GIAMALAKI 25, 71202, Heraklion, Crete, Greece
           </p>
@@ -234,6 +229,20 @@ export default function Footer() {
         <div className="max-w-6xl mx-auto px-6 py-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 text-center">
           {/* Worldwide Shipping */}
           <div>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth={2}
+              stroke="currentColor"
+              className="mx-auto h-8 w-8 title-of-the-product mb-3"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M12 3c4.97 0 9 4.03 9 9s-4.03 9-9 9-9-4.03-9-9 4.03-9 9-9zm0 0v9l6 3"
+              />
+            </svg>
             <h4 className="font-semibold text-gray-800">Worldwide Shipping</h4>
             <p className="text-sm text-gray-600 mt-1">
               Reliable global delivery with trusted logistics partners.
@@ -242,6 +251,20 @@ export default function Footer() {
 
           {/* Reliability */}
           <div>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth={2}
+              stroke="currentColor"
+              className="mx-auto h-8 w-8 title-of-the-product mb-3"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
+            </svg>
             <h4 className="font-semibold text-gray-800">Reliability</h4>
             <p className="text-sm text-gray-600 mt-1">
               High-quality products tested for durability and performance.
@@ -250,6 +273,20 @@ export default function Footer() {
 
           {/* Technical Support */}
           <div>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth={2}
+              stroke="currentColor"
+              className="mx-auto h-8 w-8 title-of-the-product mb-3"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M9 12h6m-3-3v6m9-3a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
+            </svg>
             <h4 className="font-semibold text-gray-800">Technical Support</h4>
             <p className="text-sm text-gray-600 mt-1">
               Dedicated assistance for hardware &amp; integration challenges.
@@ -258,6 +295,20 @@ export default function Footer() {
 
           {/* Software & Hardware Assistance */}
           <div>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth={2}
+              stroke="currentColor"
+              className="mx-auto h-8 w-8 title-of-the-product mb-3"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M4 6h16M4 12h16M4 18h7"
+              />
+            </svg>
             <h4 className="font-semibold text-gray-800">
               Software &amp; Hardware Support
             </h4>
