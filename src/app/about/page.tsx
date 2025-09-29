@@ -3,18 +3,20 @@
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import Lottie from "lottie-react";
+import AboutAnimation from "@/../public/lotties/About.json"; // ✅ import κανονικά
 
 export default function AboutPage() {
   return (
     <>
       <Navbar />
       <main className="max-w-5xl mx-auto px-6 py-12 text-gray-800">
-        <h1 className="text-4xl font-bold text-black">About SVK Robotics</h1>
+        <div className="flex flex-col md:flex-row items-center gap-6 mb-6">
+          <h1 className="text-4xl font-bold text-black">About SVK Robotics</h1>
+          <div className="w-32 h-32 md:w-40 md:h-40">
+            <Lottie animationData={AboutAnimation} loop={true} />
+          </div>
+        </div>
 
-        <Lottie
-          animationData={require("@/../public/lotties/About.json")}
-          loop
-        />
         <section className="space-y-6 leading-relaxed">
           <p>
             <strong>SVK Robotics </strong> is an innovative company focused on
