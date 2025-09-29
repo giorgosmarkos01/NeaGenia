@@ -7,7 +7,6 @@ import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { RootState } from "@/store/store";
 import type { CartItem } from "@/store/cartSlice";
-import { FaShoppingCart } from "react-icons/fa";
 
 type ApiProduct = {
   id: string;
@@ -115,7 +114,9 @@ export default function AddToCartButton({ product }: { product: ApiProduct }) {
               key="add"
               onClick={handleAdd}
               disabled={loading}
-              className="add-button flex items-center justify-center"
+              className="add-button flex items-center justify-center gap-2 
+             px-4 py-2 sm:px-5 sm:py-2 
+             text-sm sm:text-base font-semibold rounded-lg"
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
@@ -124,11 +125,31 @@ export default function AddToCartButton({ product }: { product: ApiProduct }) {
               aria-label="Add to cart"
             >
               {loading ? (
-                ""
+                "adding..."
               ) : product.stock_status?.toLowerCase() === "preorder" ? (
                 "Preorder"
               ) : (
-                <FaShoppingCart className="text-white w-[1rem] h-[1rem] m-[0.5rem] rounded-2xl" />
+                <>
+                  {/* Εικονίδιο */}
+                  <svg
+                    viewBox="0 0 24 24"
+                    className="h-5 w-5 sm:h-6 sm:w-6"
+                    fill="none"
+                  >
+                    <path
+                      d="M3 4h2l2 12a2 2 0 002 2h8a2 2 0 002-2l1-8H6"
+                      stroke="currentColor"
+                      strokeWidth="1.8"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                    <circle cx="10" cy="20" r="1" fill="currentColor" />
+                    <circle cx="18" cy="20" r="1" fill="currentColor" />
+                  </svg>
+
+                  {/* Κείμενο */}
+                  <span className="hidden sm:inline">Add to Cart</span>
+                </>
               )}
             </motion.button>
           ) : (

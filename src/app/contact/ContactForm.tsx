@@ -4,6 +4,8 @@ import { useState } from "react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import emailjs from "@emailjs/browser";
+import Lottie from "lottie-react";
+import ContactAnimation from "@/../public/lotties/Contact.json"; // 👉 το json σου
 
 export default function ContactPage() {
   const [form, setForm] = useState({
@@ -55,7 +57,13 @@ export default function ContactPage() {
   return (
     <>
       <Navbar />
-      <main className="flex justify-center items-center px-6 py-12 bg-white">
+      <main className="flex flex-col md:flex-row justify-center items-center gap-10 px-6 py-12 bg-white">
+        {/* 👇 Lottie Animation */}
+        <div className="hidden md:block w-full max-w-sm">
+          <Lottie animationData={ContactAnimation} loop={true} />
+        </div>
+
+        {/* 👇 Contact Form */}
         <div className="text-black rounded-2xl shadow-lg p-8 w-full max-w-2xl border border-gray-200 bg-white">
           <h2 className="text-3xl font-bold mb-2">Contact Us</h2>
           <p className="text-gray-600 mb-8">

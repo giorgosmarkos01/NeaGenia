@@ -2,16 +2,19 @@
 
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import Lottie from "lottie-react";
 
 export default function AboutPage() {
   return (
     <>
       <Navbar />
       <main className="max-w-5xl mx-auto px-6 py-12 text-gray-800">
-        <h1 className="text-4xl font-bold mb-6 text-black">
-          About SVK Robotics
-        </h1>
+        <h1 className="text-4xl font-bold text-black">About SVK Robotics</h1>
 
+        <Lottie
+          animationData={require("@/../public/lotties/About.json")}
+          loop
+        />
         <section className="space-y-6 leading-relaxed">
           <p>
             <strong>SVK Robotics </strong> is an innovative company focused on

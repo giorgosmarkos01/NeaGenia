@@ -9,7 +9,7 @@ import Breadcrumbs from "@/components/Breadcrumbs";
 import { titleCaseFromSlug } from "@/lib/titleCaseFromSlug";
 import StockPill from "@/components/StockPill";
 import Image from "next/image";
-
+import AddToCartButton from "@/components/AddToCartButton";
 const fallbackImage = "/logo.png";
 const baseUrl = "https://svkroboticsedu.com";
 
@@ -151,13 +151,9 @@ export default function ProductDetails({ slug }: { slug: string }) {
           </div>
 
           {/* Buttons */}
+          {/* Buttons */}
           <div className="flex space-x-4">
-            <button className="flex-1 py-3 border rounded-lg hover:bg-gray-100 transition">
-              Add to Cart
-            </button>
-            <button className="flex-1 py-3 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition">
-              Buy now
-            </button>
+            <AddToCartButton product={product} />
           </div>
         </div>
       </div>
