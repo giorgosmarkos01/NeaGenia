@@ -11,6 +11,7 @@ import {
   selectCount,
 } from "@/store/cartSlice";
 import { useMemo, useState } from "react";
+import BoxNowMap from "@/components/BoxNowMap";
 
 type DocType = "receipt" | "invoice";
 
@@ -58,7 +59,11 @@ export default function CheckoutPage() {
   const [occupation, setOccupation] = useState("");
   const [tax_office, setTaxOffice] = useState("");
 
-  // prices already include VAT
+  // --- BoxNow locker ---
+  const [boxNowLocker, setBoxNowLocker] = useState<any>(null);
+
+  // prices already include VAT (όπως είπαμε).
+
   const shippingFee = shipping === "ELTA" ? 4.35 : 0;
   const grandTotal = useMemo(
     () => Number((subtotal + shippingFee).toFixed(2)),
@@ -77,6 +82,13 @@ export default function CheckoutPage() {
       zip,
       country,
       shipping,
+      ...(shipping === "BoxNow" && boxNowLocker
+        ? {
+            boxnowLockerId: boxNowLocker.boxnowLockerId,
+            boxnowLockerPostalCode: boxNowLocker.boxnowLockerPostalCode,
+            boxnowLockerAddressLine1: boxNowLocker.boxnowLockerAddressLine1,
+          }
+        : {}),
     };
 
     if (docType === "invoice") {
@@ -113,6 +125,9 @@ export default function CheckoutPage() {
       ) {
         return "Please complete all invoice fields.";
       }
+    }
+    if (shipping === "BoxNow" && !boxNowLocker) {
+      return "Please select a BoxNow locker.";
     }
     if (!agree) {
       return "You must accept the Terms of Use.";
@@ -357,6 +372,22 @@ export default function CheckoutPage() {
                       </label>
                     ))}
                   </div>
+
+                  {/* BoxNow Map */}
+                  {shipping === "BoxNow" && (
+                    <div className="mt-4">
+                      <div>
+                        <h2>Choose BoxNow Locker</h2>
+                        <BoxNowMap onSelect={setBoxNowLocker} />
+                      </div>
+                      {boxNowLocker && (
+                        <div className="mt-2 text-sm text-gray-600">
+                          Selected: {boxNowLocker.boxnowLockerAddressLine1},{" "}
+                          {boxNowLocker.boxnowLockerPostalCode}
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               </section>
 
