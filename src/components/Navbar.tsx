@@ -34,10 +34,10 @@ export default function Navbar() {
 
     (async () => {
       try {
-        if (!isSignedIn) {
-          dispatch(clearCart());
-          return;
-        }
+        // if (!isSignedIn) {
+        //   dispatch(clearCart());
+        //   return;
+        // }
 
         const cartRes = await fetch("/api/cart", { cache: "no-store" });
         if (cartRes.ok) {
