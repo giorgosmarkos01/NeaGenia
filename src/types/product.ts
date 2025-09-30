@@ -28,3 +28,21 @@ export interface Product {
   collaborator_name?: string;
   category_name?: string;
 }
+
+export interface ProductSummary {
+  id: string;
+  name: string;
+  slug: string;
+  price: number;
+  stock: number;
+  coverImage: string;
+  descriptionShort: string;
+  stockStatus:
+  | "available_immediately"
+  | "available_after_ordering"
+  | "available_3_to_5_days"
+  | "available_7_to_10_days"
+  | "currently_unavailable"
+  | "preorder"
+  | "ask_for_price";
+}

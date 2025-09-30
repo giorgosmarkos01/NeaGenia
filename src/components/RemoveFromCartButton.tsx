@@ -4,21 +4,14 @@ import { useDispatch } from "react-redux";
 import { setCart, removeItem as removeLocal } from "@/store/cartSlice";
 import { useState } from "react";
 import { Trash2 } from "lucide-react"; // icon
-
-type ApiItem = {
-  productId: string;
-  name: string;
-  price: number | string;
-  qty: number;
-  imageUrl?: string;
-};
+import { CartItem } from "@/store/cartSlice";
 
 export default function RemoveFromCartButton({
   productId,
   onSync,
 }: {
   productId: string;
-  onSync?: (items: ApiItem[]) => void;
+  onSync?: (items: CartItem[]) => void;
 }) {
   const dispatch = useDispatch();
   const [loading, setLoading] = useState(false);

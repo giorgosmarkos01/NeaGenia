@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import Navbar from "@/components/Navbar";
+import { ProductSummary } from "@/types/product";
+import ProductCard from "@/components/ProductCard";
 import Footer from "@/components/Footer";
 import ProductCard from "@/components/ProductCard";
 import CategoryFilterBar from "@/components/CategoryFilterBar";
@@ -12,31 +14,16 @@ export const metadata: Metadata = {
     "Browse all SVK ROBOTICS products including robot kits, parts, accessories and educational kits.",
 };
 
+import { getAllProducts } from "@/data/product";
+
 type SearchParams = { category?: string | string[] };
 type PageProps = { searchParams: Promise<SearchParams> }; // 👈 now a Promisekjkjkjkj
 
 const API = process.env.NEXT_PUBLIC_API_BASE_URL!;
 
-// Optional: manual labels για πιο καθαρά ονόματα κατηγοριών
-const LABELS: Record<string, string> = {
-  "robot-kits": "Robot Kits",
-  "robot-parts": "Robot Parts",
-  "educational-kits": "Educational Kits",
-  accessories: "Accessories",
-  tracks: "Tracks",
-};
 
 function titleCaseFromSlug(slug: string) {
-  if (LABELS[slug]) return LABELS[slug];
   return slug.replace(/[-_]+/g, " ").replace(/\b\w/g, (m) => m.toUpperCase());
-}
-
-async function getAllProducts(): Promise<Product[]> {
-  const res = await fetch(`${API}/api/items/category/all-items`, {
-    cache: "no-store",
-  });
-  const data = await res.json();
-  return data.items ?? [];
 }
 
 type Category = { slug: string; name: string; count: number };
@@ -108,7 +95,7 @@ export default async function ProductsPage({ searchParams }: PageProps) {
 
           <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 sm:gap-8">
             {products.length ? (
-              products.map((p) => <ProductCard key={p.slug} product={p} />)
+              products.map((p: ProductSummary) => <ProductCard key={p.slug} product={p} />)
             ) : (
               <p className="col-span-full text-sm text-zinc-600">
                 No products found
