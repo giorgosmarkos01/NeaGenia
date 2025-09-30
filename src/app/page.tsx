@@ -1,22 +1,13 @@
 import Navbar from "@/components/Navbar";
-import { Product } from "@/types/product";
 import ProductCard from "@/components/ProductCard";
 import FeaturedProducts from "@/components/FeaturedProducts";
 import Footer from "@/components/Footer";
 import HeroBanner from "@/components/HeroBanner";
-async function getProducts(): Promise<Product[]> {
-  const res = await fetch(
-    `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/items/get/highlighted`,
-    {
-      cache: "no-store",
-    }
-  );
-  const data = await res.json();
-  return data.items; // <- fix here
-}
+
+import { getAllProducts } from "@/data/product";
 
 export default async function ProductsPage() {
-  const products = await getProducts();
+  const products = await getAllProducts();
 
   return (
     <>

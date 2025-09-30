@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Product } from "@/types/product";
+import { ProductSummary } from "@/types/product";
 import Link from "next/link";
 import AddToCartButton from "@/components/AddToCartButton";
 import StockPill from "./StockPill";
@@ -11,7 +11,7 @@ import { setWishlist } from "@/store/wishlistSlice";
 import { useAuth } from "@clerk/nextjs";
 
 interface ProductCardProps {
-  product: Product;
+  product: ProductSummary;
 }
 
 const fallbackImage = "/logo.png";
@@ -25,36 +25,32 @@ export default function ProductCard({ product }: ProductCardProps) {
   const wishlist: string[] = useSelector((s: any) => s.wishlist.items || []);
   const liked = wishlist.includes(product.id);
 
-  const imageUrl = product.images?.length
-    ? baseUrl + product.images[0]
-    : fallbackImage;
+  // const toggleWishlist = async (e: React.MouseEvent) => {
+  //   e.stopPropagation();
+  //   if (loading || !isSignedIn) return;
+  //   setLoading(true);
 
-  const toggleWishlist = async (e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (loading || !isSignedIn) return;
-    setLoading(true);
-
-    try {
-      if (!liked) {
-        await fetch(`/api/wishlist/${product.id}`, { method: "POST" });
-        dispatch(setWishlist([...wishlist, product.id]));
-      } else {
-        await fetch(`/api/wishlist/${product.id}`, { method: "DELETE" });
-        dispatch(setWishlist(wishlist.filter((id) => id !== product.id)));
-      }
-    } catch (error) {
-      console.error("Wishlist toggle failed:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  //   try {
+  //     if (!liked) {
+  //       await fetch(`/api/wishlist/${product.id}`, { method: "POST" });
+  //       dispatch(setWishlist([...wishlist, product.id]));
+  //     } else {
+  //       await fetch(`/api/wishlist/${product.id}`, { method: "DELETE" });
+  //       dispatch(setWishlist(wishlist.filter((id) => id !== product.id)));
+  //     }
+  //   } catch (error) {
+  //     console.error("Wishlist toggle failed:", error);
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
 
   return (
     <div className="bg-white rounded-xl transition transform p-3 sm:p-4 relative flex flex-col">
       {/* Wishlist icon */}
       {isSignedIn && (
         <button
-          onClick={toggleWishlist}
+          // onClick={toggleWishlist}
           disabled={loading}
           title={liked ? "Αφαίρεση από αγαπημένα" : "Προσθήκη στα αγαπημένα"}
           aria-label="Εναλλαγή αγαπημένων"
@@ -88,7 +84,7 @@ export default function ProductCard({ product }: ProductCardProps) {
       <Link href={`/products/${product.slug}`}>
         <div className="w-full h-36 sm:h-44 flex items-center justify-center bg-gray-50 rounded-lg mb-3 sm:mb-4 overflow-hidden">
           <Image
-            src={imageUrl}
+            src={product.coverImage}
             alt={product.name}
             width={200}
             height={160}
@@ -108,7 +104,7 @@ export default function ProductCard({ product }: ProductCardProps) {
 
       {/* Description */}
       <p className="text-gray-500 text-xs sm:text-sm line-clamp-2 mb-2">
-        {product.description_short}
+        {product.descriptionShort}
       </p>
 
       {/* Price & Add to Cart */}
@@ -118,7 +114,7 @@ export default function ProductCard({ product }: ProductCardProps) {
         </p>
         <span>
           <AddToCartButton product={product} />
-          <StockPill status={product.stock_status} />
+          <StockPill status={product.stockStatus} />
         </span>
       </div>
     </div>

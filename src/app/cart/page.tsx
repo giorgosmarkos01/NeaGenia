@@ -7,31 +7,15 @@ import Footer from "@/components/Footer";
 import RemoveFromCartButton from "@/components/RemoveFromCartButton";
 import { useDispatch } from "react-redux";
 import { setCart, decrementItem } from "@/store/cartSlice";
+import { CartItem } from "@/types/cart";
+import { CartApiResponse } from "@/types/api";
 import Image from "next/image";
 const fallbackImage = "/logo.png";
 const baseUrl = "https://svkroboticsedu.com";
 
-interface UiCartItem {
-  productId: string;
-  name: string;
-  price: number;
-  qty: number;
-  imageUrl?: string;
-}
-interface ApiCartItem {
-  productId: string;
-  name: string;
-  price: string | number;
-  qty: number;
-  imageUrl?: string;
-}
-interface CartApiResponse {
-  cartId: string | null;
-  items: ApiCartItem[];
-}
 
 export default function CartPage() {
-  const [items, setItems] = useState<UiCartItem[]>([]);
+  const [items, setItems] = useState<CartItem[]>([]);
   const [total, setTotal] = useState(0);
   const [loadingId, setLoadingId] = useState<string | null>(null);
   const lock = useRef(false);
@@ -40,8 +24,8 @@ export default function CartPage() {
   const toMoney = (v: unknown) => Number.parseFloat(String(v ?? 0)) || 0;
 
   const applyItems = useCallback(
-    (rawItems: ApiCartItem[]) => {
-      const uiItems: UiCartItem[] = rawItems.map((it) => ({
+    (rawItems: CartItem[]) => {
+      const uiItems: CartItem[] = rawItems.map((it) => ({
         productId: it.productId,
         name: it.name,
         price: toMoney(it.price),
@@ -116,11 +100,11 @@ export default function CartPage() {
   };
 
   // ---------- Handlers ----------
-  const handlePlus = (it: UiCartItem) => {
+  const handlePlus = (it: CartItem) => {
     run(it.productId, () => postDelta(it.productId, +1, it.price));
   };
 
-  const handleMinus = (it: UiCartItem) => {
+  const handleMinus = (it: CartItem) => {
     if (loadingId) return;
     if (it.qty > 1) {
       // Optimistic local update
@@ -138,9 +122,7 @@ export default function CartPage() {
     }
   };
 
-  const shippingFee = 0;
   const tax = Math.round(total * 0.24 * 100) / 100;
-  const grandTotal = Math.round((total + shippingFee + tax) * 100) / 100;
 
   return (
     <>
@@ -233,22 +215,15 @@ export default function CartPage() {
                 <span>Items ({items.length})</span>
                 <span>€ {total.toFixed(2)}</span>
               </div>
-              <div className="flex justify-between mb-2">
-                <span>Shipping Fee</span>
-                <span>{shippingFee === 0 ? "Free" : `€ ${shippingFee}`}</span>
-              </div>
               <div className="flex justify-between mb-4">
-                <span>Tax (24%)</span>
+                <span>VAT (24% Included)</span>
                 <span>€ {tax.toFixed(2)}</span>
               </div>
               <hr className="mb-4" />
               <div className="flex justify-between font-bold text-lg mb-4">
                 <span>Total</span>
-                <span>€ {grandTotal.toFixed(2)}</span>
+                <span>€ {total.toFixed(2)}</span>
               </div>
-              {/* <button className="w-full py-3 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition">
-                Procced to Checkout
-              </button> */}
               <div className="flex justify-center">
                 <Link
                   href="/checkout"

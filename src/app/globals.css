@@ -1,6 +1,7 @@
+/* Just one import for all of Tailwind */
 @import "tailwindcss";
-@tailwind utilities;
 
+/* Optional custom layers */
 @layer base {
   body {
     @apply text-black;
