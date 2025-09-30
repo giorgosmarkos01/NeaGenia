@@ -8,7 +8,7 @@ import { useEffect, useState } from "react";
 import { SignedIn, SignedOut, SignInButton, UserButton } from "@clerk/nextjs";
 import { useAuth } from "@clerk/nextjs";
 import SearchBar from "./SearchBar";
-import { clearCart, setCart } from "@/store/cartSlice";
+import { setCart } from "@/store/cartSlice";
 
 function cn(...xs: (string | false | null | undefined)[]) {
   return xs.filter(Boolean).join(" ");
