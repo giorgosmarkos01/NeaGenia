@@ -19,6 +19,7 @@ export default function BoxNowMap({
       const script = document.createElement("script");
       script.src = "https://widget-cdn.boxnow.gr/map-widget/client/v5.js";
       script.id = "boxnow-widget-script";
+      
       script.async = true;
       script.defer = true;
       document.head.appendChild(script);
@@ -42,3 +43,4 @@ export default function BoxNowMap({
     />
   );
 }
+export default BoxNowMap;

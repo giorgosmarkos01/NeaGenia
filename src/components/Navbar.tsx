@@ -8,7 +8,7 @@ import { useEffect, useState } from "react";
 import { SignedIn, SignedOut, SignInButton, UserButton } from "@clerk/nextjs";
 import { useAuth } from "@clerk/nextjs";
 import SearchBar from "./SearchBar";
-import { clearCart, setCart } from "@/store/cartSlice";
+import { setCart } from "@/store/cartSlice";
 
 function cn(...xs: (string | false | null | undefined)[]) {
   return xs.filter(Boolean).join(" ");
@@ -34,11 +34,6 @@ export default function Navbar() {
 
     (async () => {
       try {
-        if (!isSignedIn) {
-          dispatch(clearCart());
-          return;
-        }
-
         const cartRes = await fetch("/api/cart", { cache: "no-store" });
         if (cartRes.ok) {
           const cartData = await cartRes.json();

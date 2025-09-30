@@ -37,7 +37,7 @@ export default function CheckoutPage() {
 
   const [docType, setDocType] = useState<DocType>("receipt");
   const [agree, setAgree] = useState(false);
-  const [shipping, setShipping] = useState<"ELTA" | "FedEx" | "BoxNow">("ELTA");
+  const [shipping, setShipping] = useState<"ELTA" | "FedEx">("ELTA");
   const [loading, setLoading] = useState(false);
 
   // --- Delivery fields ---
@@ -63,6 +63,7 @@ export default function CheckoutPage() {
   const [boxNowLocker, setBoxNowLocker] = useState<any>(null);
 
   // prices already include VAT (όπως είπαμε).
+
   const shippingFee = shipping === "ELTA" ? 4.35 : 0;
   const grandTotal = useMemo(
     () => Number((subtotal + shippingFee).toFixed(2)),
@@ -339,8 +340,8 @@ export default function CheckoutPage() {
                 <div className="mt-6">
                   <p className="text-sm text-gray-700 mb-2">Shipping Options</p>
 
-                  <div className="grid sm:grid-cols-3 gap-3">
-                    {(["ELTA", "FedEx", "BoxNow"] as const).map((s) => (
+                  <div className="grid sm:grid-cols-2 gap-3">
+                    {(["ELTA", "FedEx"] as const).map((s) => (
                       <label
                         key={s}
                         className={`flex items-center gap-3 rounded-xl border p-4 cursor-pointer transition ${
