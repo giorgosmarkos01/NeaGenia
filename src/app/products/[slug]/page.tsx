@@ -1,173 +1,42 @@
-"use client";
+import type { Metadata } from "next";
+import ProductDetails from "./ProductDetails";
 
-import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
-import Breadcrumbs from "@/components/Breadcrumbs";
-import { titleCaseFromSlug } from "@/lib/titleCaseFromSlug";
-import StockPill from "@/components/StockPill";
-import Image from "next/image";
-const fallbackImage = "/logo.png";
-const baseUrl = "https://svkroboticsedu.com";
+type Props = { params: Promise<{ slug: string }> };
 
-interface Product {
-  id: string;
-  name: string;
-  description_short: string;
-  description_full?: string;
-  price: string;
-  images?: string[];
-  category_name?: string;
-  collaborator_name?: string;
-  stock_status?: string;
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { slug } = await params; // 👈 must await
+
+  try {
+    const res = await fetch(
+      `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/items/${slug}`,
+      { cache: "no-store" }
+    );
+
+    if (!res.ok) {
+      return {
+        title: `${slug} | SVK ROBOTICS`,
+        description: `Details and specifications for ${slug} from SVK ROBOTICS.`,
+      };
+    }
+
+    const data = await res.json();
+    const product = data.item;
+
+    return {
+      title: `${product?.name ?? slug} | SVK ROBOTICS`,
+      description:
+        product?.description_short ??
+        `Details and specifications for ${slug} from SVK ROBOTICS.`,
+    };
+  } catch {
+    return {
+      title: `${slug} | SVK ROBOTICS`,
+      description: `Details and specifications for ${slug} from SVK ROBOTICS.`,
+    };
+  }
 }
 
-export default function ProductDetailsPage() {
-  const params = useParams<{ slug: string }>();
-  const slug = params?.slug;
-
-  const [product, setProduct] = useState<Product | null>(null);
-  const [selectedImage, setSelectedImage] = useState<string>(fallbackImage);
-
-  useEffect(() => {
-    const fetchProduct = async () => {
-      try {
-        const res = await fetch(
-          `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/items/${slug}`,
-          { cache: "no-store" }
-        );
-        if (!res.ok) {
-          setProduct(null);
-          return;
-        }
-        const data = await res.json();
-        setProduct(data.item);
-        setSelectedImage(
-          data.item.images?.[0] ? baseUrl + data.item.images[0] : fallbackImage
-        );
-      } catch (error) {
-        console.error("Error fetching product:", error);
-        setProduct(null);
-      }
-    };
-
-    if (slug) fetchProduct();
-  }, [slug]);
-
-  if (!product) return <div className="p-6">Product not found.</div>;
-
-  return (
-    <>
-      <Navbar />
-
-      <div className="bg-white max-w-6xl mx-auto p-6 grid grid-cols-1 md:grid-cols-2 gap-8">
-        {/* Left: Image Gallery */}
-        <div>
-          <div>
-            <Breadcrumbs
-              items={[
-                { label: "Home", href: "/" },
-                { label: "Products", href: "/products" },
-                {
-                  label: titleCaseFromSlug(product.category_name),
-                  href: `/products?category=${product.category_name}`,
-                },
-                { label: product.name }, // current page, χωρίς href
-              ]}
-              separator="/"
-            />
-
-            <div className="bg-gray-100 rounded-lg flex items-center justify-center p-4 h-[400px] relative">
-              <Image
-                src={selectedImage || "/fallback.png"}
-                alt={product.name}
-                fill
-                className="object-contain"
-                sizes="(max-width: 768px) 100vw, 700px"
-                priority // optional: για hero image
-              />
-            </div>
-          </div>
-          <div className="flex mt-4 space-x-2">
-            {(product.images?.length ? product.images : [fallbackImage]).map(
-              (img, index) => {
-                const fullImg = img.startsWith("/") ? baseUrl + img : img;
-                return (
-                  <div
-                    key={index}
-                    className={`relative w-16 h-16 rounded-md border overflow-hidden cursor-pointer ${
-                      selectedImage === fullImg ? "ring-2 ring-orange-500" : ""
-                    }`}
-                    onClick={() => setSelectedImage(fullImg)}
-                  >
-                    <Image
-                      src={fullImg}
-                      alt={`${product.name} image ${index + 1}`}
-                      fill
-                      className="object-cover rounded-md"
-                      sizes="64px"
-                    />
-                  </div>
-                );
-              }
-            )}
-          </div>
-        </div>
-
-        {/* Right: Info */}
-        <div>
-          <h1 className="text-3xl font-bold mb-2 text-black">{product.name}</h1>
-
-          {/* Rating */}
-          <div className="flex items-center mb-4">
-            <span className="text-yellow-500 text-xl mr-2">★ ★ ★ ★ ☆</span>
-            <span className="text-gray-600">(4.5)</span>
-          </div>
-
-          {/* Price */}
-          <div className="flex items-center space-x-3 mb-6">
-            <StockPill status={product.stock_status} />
-            <p className="text-3xl font-bold text-black">{product.price} €</p>
-            {/* strike-through example (remove if not needed) */}
-            {/* <p className="text-lg text-gray-500 line-through">4199.99 €</p> */}
-          </div>
-
-          <hr className="my-6" />
-
-          {/* Markdown Description */}
-          <div className="prose prose-orange max-w-none text-black">
-            <ReactMarkdown remarkPlugins={[remarkGfm]}>
-              {product.description_full || product.description_short || ""}
-            </ReactMarkdown>
-          </div>
-
-          <hr className="my-6" />
-
-          {/* Additional Info */}
-          <div className="space-y-2 text-black mb-6">
-            <p>
-              <strong>Brand:</strong> {product.collaborator_name || "N/A"}
-            </p>
-            <p>
-              <strong>Category:</strong> {product.category_name || "N/A"}
-            </p>
-          </div>
-
-          {/* Buttons */}
-          <div className="flex space-x-4">
-            <button className="flex-1 py-3 border rounded-lg hover:bg-gray-100 transition">
-              Add to Cart
-            </button>
-            <button className="flex-1 py-3 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition">
-              Buy now
-            </button>
-          </div>
-        </div>
-      </div>
-      <Footer />
-    </>
-  );
+export default async function ProductPage({ params }: Props) {
+  const { slug } = await params; // 👈 must await
+  return <ProductDetails slug={slug} />;
 }

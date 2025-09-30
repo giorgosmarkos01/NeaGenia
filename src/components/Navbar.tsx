@@ -3,13 +3,12 @@
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { useSelector, useDispatch } from "react-redux"; // NEW
-import { useEffect, useState } from "react"; // NEW
+import { useSelector, useDispatch } from "react-redux";
+import { useEffect, useState } from "react";
 import { SignedIn, SignedOut, SignInButton, UserButton } from "@clerk/nextjs";
-import { useAuth } from "@clerk/nextjs"; // (client hook)
+import { useAuth } from "@clerk/nextjs";
 import SearchBar from "./SearchBar";
-import { clearCart, setCart } from "@/store/cartSlice"; // NEW
-import { setWishlist, clearWishlist } from "@/store/wishlistSlice";
+import { setCart } from "@/store/cartSlice";
 
 function cn(...xs: (string | false | null | undefined)[]) {
   return xs.filter(Boolean).join(" ");
@@ -19,10 +18,9 @@ export default function Navbar() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
 
-  const dispatch = useDispatch(); // NEW
-  const { isSignedIn } = useAuth(); // NEW
+  const dispatch = useDispatch();
+  const { isSignedIn } = useAuth();
 
-  // cart count
   const count =
     useSelector((s: any) =>
       (s.cart?.items ?? []).reduce(
@@ -31,32 +29,15 @@ export default function Navbar() {
       )
     ) ?? 0;
 
-  // ⬇️ Sync cart όταν αλλάζει το auth state (sign-in / sign-out)
   useEffect(() => {
     let cancelled = false;
 
     (async () => {
       try {
-        if (!isSignedIn) {
-          // dispatch(clearCart());
-          //dispatch(clearWishlist());
-          return;
-        }
-
-        const [cartRes, wishlistRes] = await Promise.all([
-          fetch("/api/cart", { cache: "no-store" }),
-          fetch("/api/wishlist", { cache: "no-store" }),
-        ]);
-
+        const cartRes = await fetch("/api/cart", { cache: "no-store" });
         if (cartRes.ok) {
           const cartData = await cartRes.json();
           if (!cancelled) dispatch(setCart(cartData.items || []));
-        }
-
-        if (wishlistRes.ok) {
-          const wishlistData = await wishlistRes.json();
-          const ids = wishlistData.map((item: any) => item.product_id);
-          if (!cancelled) dispatch(setWishlist(ids));
         }
       } catch {
         // ignore
@@ -68,18 +49,12 @@ export default function Navbar() {
     };
   }, [isSignedIn, dispatch]);
 
-  const links = [
-    { href: "/", label: "Home" },
-    { href: "/products", label: "Shop" },
-    { href: "/about", label: "About" },
-    { href: "/contact", label: "Contact" },
-  ];
-
   return (
-    <header className="sticky top-0 z-40 w-full border-b bg-white/80 backdrop-blur supports-[backdrop-filter]:bg-white/60">
-      <nav className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3 md:grid md:grid-cols-3 md:gap-3 md:px-6">
-        {/* Left: burger (mobile) + logo */}
-        <div className="flex items-center gap-3">
+    <header className="sticky top-0 z-40 w-full border-b bg-white">
+      <nav className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
+        {/* Left: burger (mobile) + logo + Home + Products */}
+        <div className="flex items-center gap-6">
+          {/* burger button only mobile */}
           <button
             aria-label="Toggle menu"
             className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-zinc-300 text-black md:hidden"
@@ -95,6 +70,7 @@ export default function Navbar() {
             </svg>
           </button>
 
+          {/* Logo */}
           <Link href="/" className="flex items-center gap-2">
             <Image
               src="/logo.png"
@@ -103,39 +79,72 @@ export default function Navbar() {
               height={70}
               className="rounded"
               priority
+              style={{ height: "auto", width: "auto" }}
             />
           </Link>
 
-          {/* Desktop links */}
-          <ul className="hidden md:flex items-center gap-6 ml-4">
-            {links.map((l) => (
-              <li key={l.href}>
-                <Link
-                  href={l.href}
-                  className={cn(
-                    "text-sm hover:text-orange-600 transition",
-                    pathname === l.href
-                      ? "text-orange-600 font-medium"
-                      : "text-zinc-700"
-                  )}
-                >
-                  {l.label}
-                </Link>
-              </li>
-            ))}
-          </ul>
+          {/* Desktop Home + Products */}
+          <div className="hidden md:flex items-center gap-6 ml-4">
+            <Link
+              href="/"
+              className={cn(
+                "text-sm hover:text-orange-600 transition",
+                pathname === "/"
+                  ? "text-orange-600 font-medium"
+                  : "text-zinc-700"
+              )}
+            >
+              Home
+            </Link>
+            <Link
+              href="/products"
+              className={cn(
+                "text-sm hover:text-orange-600 transition",
+                pathname === "/products"
+                  ? "text-orange-600 font-medium"
+                  : "text-zinc-700"
+              )}
+            >
+              Products
+            </Link>
+          </div>
         </div>
 
-        {/* Desktop searchbar in center */}
-        <div className="hidden md:flex justify-center">
-          <SearchBar />
+        {/* Center: SearchBar */}
+        <div className="hidden md:flex flex-1 justify-center">
+          <div className="w-64">
+            <SearchBar />
+          </div>
         </div>
 
-        {/* Right: avatar + cart + sign in */}
-        <div className="ml-auto flex items-center gap-3">
-          {/* <SignedIn>
-            <UserButton afterSignOutUrl="/" />
-          </SignedIn> */}
+        {/* Right: About + Contact + User/Cart */}
+        <div className="flex items-center gap-6">
+          <div className="hidden md:flex items-center gap-6">
+            <Link
+              href="/about"
+              className={cn(
+                "text-sm hover:text-orange-600 transition",
+                pathname === "/about"
+                  ? "text-orange-600 font-medium"
+                  : "text-zinc-700"
+              )}
+            >
+              About
+            </Link>
+            <Link
+              href="/contact"
+              className={cn(
+                "text-sm hover:text-orange-600 transition",
+                pathname === "/contact"
+                  ? "text-orange-600 font-medium"
+                  : "text-zinc-700"
+              )}
+            >
+              Contact
+            </Link>
+          </div>
+
+          {/* User + Cart */}
           <SignedIn>
             <UserButton afterSignOutUrl="/">
               <UserButton.MenuItems>
@@ -143,11 +152,6 @@ export default function Navbar() {
                   label="Orders"
                   labelIcon="📦"
                   href="/UserOrderHistory"
-                />
-                <UserButton.Link
-                  label="WishList"
-                  labelIcon="📦"
-                  href="/wishlist"
                 />
               </UserButton.MenuItems>
             </UserButton>
@@ -174,7 +178,6 @@ export default function Navbar() {
               </span>
             )}
           </Link>
-
           <SignedOut>
             <SignInButton mode="modal">
               <button className="hidden md:inline text-sm font-medium text-orange-500 hover:text-orange-600 transition">
@@ -193,34 +196,55 @@ export default function Navbar() {
         )}
       >
         <div className="mx-auto max-w-6xl px-4 py-3 space-y-4">
-          {/* Mobile search */}
           <SearchBar />
-
-          {/* Mobile links */}
           <ul className="space-y-1">
-            {links.map((l) => (
-              <li key={l.href}>
-                <Link
-                  href={l.href}
-                  onClick={() => setOpen(false)}
-                  className={cn(
-                    "block rounded-lg px-3 py-2 text-sm hover:bg-zinc-50",
-                    pathname === l.href ? "text-orange-600" : "text-zinc-700"
-                  )}
-                >
-                  {l.label}
-                </Link>
-              </li>
-            ))}
-
-            <li className="pt-2">
-              <SignedOut>
-                <SignInButton mode="modal">
-                  <button className="w-full text-sm font-medium text-orange-500 hover:text-orange-600 transition">
-                    Sign in
-                  </button>
-                </SignInButton>
-              </SignedOut>
+            <li>
+              <Link
+                href="/"
+                onClick={() => setOpen(false)}
+                className={cn(
+                  "block rounded-lg px-3 py-2 text-sm hover:bg-zinc-50",
+                  pathname === "/" ? "text-orange-600" : "text-zinc-700"
+                )}
+              >
+                Home
+              </Link>
+            </li>
+            <li>
+              <Link
+                href="/products"
+                onClick={() => setOpen(false)}
+                className={cn(
+                  "block rounded-lg px-3 py-2 text-sm hover:bg-zinc-50",
+                  pathname === "/products" ? "text-orange-600" : "text-zinc-700"
+                )}
+              >
+                Products
+              </Link>
+            </li>
+            <li>
+              <Link
+                href="/about"
+                onClick={() => setOpen(false)}
+                className={cn(
+                  "block rounded-lg px-3 py-2 text-sm hover:bg-zinc-50",
+                  pathname === "/about" ? "text-orange-600" : "text-zinc-700"
+                )}
+              >
+                About
+              </Link>
+            </li>
+            <li>
+              <Link
+                href="/contact"
+                onClick={() => setOpen(false)}
+                className={cn(
+                  "block rounded-lg px-3 py-2 text-sm hover:bg-zinc-50",
+                  pathname === "/contact" ? "text-orange-600" : "text-zinc-700"
+                )}
+              >
+                Contact
+              </Link>
             </li>
           </ul>
         </div>

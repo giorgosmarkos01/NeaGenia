@@ -1,100 +1,94 @@
 "use client";
+import { Swiper, SwiperSlide } from "swiper/react";
+import { Autoplay, Pagination } from "swiper/modules";
+import "swiper/css";
+import "swiper/css/pagination";
+import Link from "next/link";
 import Image from "next/image";
-import { useEffect, useState } from "react";
+import Lottie from "lottie-react";
+import HeroBannerAnimation from "@/../public/lotties/HeroBanner.json";
 
 const slides = [
   {
-    title: "Next-Level Gaming Starts Here – Discover PlayStation 5 Today!",
-    subtitle: "Hurry up only few lefts!",
-    button1: "Shop Now",
-    button2: "Explore Deals →",
-    image:
-      "https://svkroboticsedu.com/uploads/items/2025-06-04-fox_6-Photoroom.jpg",
+    title: "Discover SVK Robotics – Innovation in Education & Technology",
+    subtitle: "Empowering the next generation of creators",
+    button1: "Visit SVK Robotics",
+    button2: "Explore More →",
+    link1: "https://svkrobotics.com",
+    isLottie: true,
   },
   {
-    title: "Boost Your Robotics Skills – Explore Our Latest Kits!",
-    subtitle: "Limited Stock Available!",
-    button1: "Browse Kits",
+    title: "A variety of ZMROBO Educational Products Available",
+    subtitle: "Robotics kits, STEM toys, and more for all ages",
+    button1: "Check them out",
     button2: "Learn More →",
-    image:
-      "https://svkroboticsedu.com/uploads/items/2025-06-04-fox_6-Photoroom.jpg",
+    link1: "products?category=educational-kits",
+    image: "/ZMROBOHeroBanner.png",
   },
   {
-    title: "Upgrade Your Workspace – Get the Best Tools Today!",
-    subtitle: "Hot Deals You Can’t Miss!",
-    button1: "Shop Tools",
-    button2: "Check Offers →",
-    image:
-      "https://svkroboticsedu.com/uploads/items/2025-06-04-fox_6-Photoroom.jpg",
+    title: "Checkout Our New Drones!!",
+    subtitle: "Next-level flying technology at your fingertips",
+    button1: "Shop Drones",
+    button2: "See Features →",
+    link1: "/products?category=drones#features",
+    image: "/HeroBanner.png",
   },
 ];
 
 export default function HeroBanner() {
-  const [currentSlide, setCurrentSlide] = useState(0);
-
-  // Auto-slide every 3 seconds
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentSlide((prev) => (prev + 1) % slides.length);
-    }, 3000);
-    return () => clearInterval(interval);
-  }, []);
-
   return (
-    <section className="max-w-6xl mx-auto px-6 mt-8 overflow-hidden ">
-      <div
-        className="flex transition-transform duration-700 ease-in-out gap-8"
-        style={{ transform: `translateX(-${currentSlide * (100 + 2)}%)` }} // +2% για να καλύψει το gap
+    <section className="max-w-6xl mx-auto px-6 mt-6">
+      <Swiper
+        modules={[Autoplay, Pagination]}
+        autoplay={{ delay: 5000 }}
+        pagination={{ clickable: true }}
+        spaceBetween={20}
+        slidesPerView={1}
+        loop
       >
         {slides.map((slide, index) => (
-          <div
-            key={index}
-            className="min-w-full bg-gray-100 rounded-2xl flex flex-col md:flex-row items-center justify-between p-12 md:p-20 shadow-lg"
-          >
-            {/* Left Side */}
-            <div className="md:w-1/2 space-y-4">
-              <p className="text-orange-600 font-semibold text-sm">
-                {slide.subtitle}
-              </p>
-              <h1 className="text-3xl md:text-4xl font-bold text-gray-900 leading-snug">
-                {slide.title}
-              </h1>
-              <div className="flex gap-4 mt-6">
-                <button className="bg-orange-600 text-white px-6 py-3 rounded-full hover:bg-orange-700 transition">
-                  {slide.button1}
-                </button>
-                <button className="flex items-center gap-2 text-gray-700 hover:text-gray-900 transition">
-                  {slide.button2}
-                </button>
+          <SwiperSlide key={index}>
+            <div className="bg-gray-100 rounded-2xl flex flex-col md:flex-row items-center justify-between px-8 py-8 md:px-14 md:py-10 shadow-lg min-h-[280px] md:min-h-[350px]">
+              {/* Left Side */}
+              <div className="md:w-1/2 space-y-3">
+                <p className="title-of-the-product font-semibold text-sm">
+                  {slide.subtitle}
+                </p>
+                <h1 className="text-2xl md:text-3xl font-bold text-gray-900 leading-snug">
+                  {slide.title}
+                </h1>
+                <div className="flex gap-4 mt-4">
+                  <Link
+                    href={slide.link1}
+                    className="add-button text-white px-5 py-2.5 rounded-full title-of-the-product2 transition"
+                  >
+                    {slide.button1}
+                  </Link>
+                </div>
+              </div>
+
+              {/* Right Side */}
+              <div className="mt-6 md:mt-0 md:w-1/2 flex justify-center">
+                {slide.isLottie ? (
+                  <div className="w-full max-w-lg max-h-[300px] sm:max-h-[400px] md:max-h-[500px]">
+                    <Lottie animationData={HeroBannerAnimation} loop />
+                  </div>
+                ) : (
+                  slide.image && (
+                    <Image
+                      src={slide.image}
+                      alt="Slide Image"
+                      width={600}
+                      height={600}
+                      className="object-contain w-full h-auto max-h-[300px] sm:max-h-[400px] md:max-h-[500px]"
+                    />
+                  )
+                )}
               </div>
             </div>
-
-            {/* Right Side */}
-            {/* <div className="mt-8 md:mt-0 md:w-1/2 flex justify-center">
-              <Image
-                src={slide.image}
-                alt="Slide Image"
-                width={400}
-                height={400}
-                className="object-contain"
-              />
-            </div> */}
-          </div>
+          </SwiperSlide>
         ))}
-      </div>
-
-      {/* Dots */}
-      <div className="flex justify-center mt-4 space-x-2">
-        {slides.map((_, index) => (
-          <span
-            key={index}
-            className={`w-3 h-3 rounded-full cursor-pointer transition ${
-              index === currentSlide ? "bg-orange-500" : "bg-gray-300"
-            }`}
-            onClick={() => setCurrentSlide(index)}
-          ></span>
-        ))}
-      </div>
+      </Swiper>
     </section>
   );
 }

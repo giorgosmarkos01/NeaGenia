@@ -1,16 +1,26 @@
+import type { Metadata } from "next";
 import Navbar from "@/components/Navbar";
 import { ProductSummary } from "@/types/product";
 import ProductCard from "@/components/ProductCard";
 import Footer from "@/components/Footer";
+import ProductCard from "@/components/ProductCard";
 import CategoryFilterBar from "@/components/CategoryFilterBar";
 import Breadcrumbs from "@/components/Breadcrumbs";
+import { Product } from "@/types/product";
+
+export const metadata: Metadata = {
+  title: "Products | SVK ROBOTICS",
+  description:
+    "Browse all SVK ROBOTICS products including robot kits, parts, accessories and educational kits.",
+};
 
 import { getAllProducts } from "@/data/product";
 
 type SearchParams = { category?: string | string[] };
-type PageProps = { searchParams: Promise<SearchParams> };
+type PageProps = { searchParams: Promise<SearchParams> }; // 👈 now a Promisekjkjkjkj
 
 const API = process.env.NEXT_PUBLIC_API_BASE_URL!;
+
 
 function titleCaseFromSlug(slug: string) {
   return slug.replace(/[-_]+/g, " ").replace(/\b\w/g, (m) => m.toUpperCase());
@@ -31,8 +41,7 @@ function buildCategories(items: any[]): Category[] {
 }
 
 export default async function ProductsPage({ searchParams }: PageProps) {
-  // ✅ await before using
-  const sp = await searchParams;
+  const sp = await searchParams; // 👈 must await
 
   // normalize to a single lowercase string
   const activeCategory = Array.isArray(sp.category)
@@ -42,7 +51,7 @@ export default async function ProductsPage({ searchParams }: PageProps) {
   // φέρε όλα τα προϊόντα μία φορά
   const all = await getAllProducts();
 
-  // χτίσε categories με σωστά counts
+  // χτίσε categories με counts
   const categories = buildCategories(all);
 
   // φιλτράρισμα προϊόντων
@@ -58,18 +67,21 @@ export default async function ProductsPage({ searchParams }: PageProps) {
       <Navbar />
       <div className="p-4 sm:p-6 bg-white">
         <div className="mx-auto max-w-6xl">
-          <h1 className="text-xl sm:text-2xl font-bold mb-3 text-black">
-            {activeCategory
-              ? titleCaseFromSlug(activeCategory)
-              : "Popular products"}
-          </h1>
+          <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
+            {/* Τίτλος */}
+            <h1 className="text-xl sm:text-2xl font-bold text-black">
+              {activeCategory
+                ? titleCaseFromSlug(activeCategory)
+                : "Popular products"}
+            </h1>
 
-          <CategoryFilterBar
-            categories={categories}
-            active={activeCategory ?? null}
-            basePath="/products"
-          />
-
+            {/* Κατηγορίες */}
+            <CategoryFilterBar
+              categories={categories}
+              active={activeCategory ?? null}
+              basePath="/products"
+            />
+          </div>
           <Breadcrumbs
             items={[
               { label: "Home", href: "/" },

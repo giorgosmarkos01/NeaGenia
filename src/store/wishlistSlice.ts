@@ -1,55 +1,27 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
-export interface WishlistItem {
-  productId: string;
-  name: string;
-  price: number;
-  slug?: string;
-  image?: string;
-}
-
-interface WishlistState {
-  items: WishlistItem[];
-}
-
-const initialState: WishlistState = {
-  items: [],
-};
-
-const findItem = (state: WishlistState, productId: string) =>
-  state.items.find((i) => i.productId === productId);
+type WishlistState = string[]; // π.χ. ["abc123", "xyz789"]
 
 const wishlistSlice = createSlice({
   name: "wishlist",
-  initialState,
+  initialState: [] as WishlistState,
   reducers: {
-    /** Αντικατάσταση όλης της wishlist */
-    setWishlist: (state, action: PayloadAction<WishlistItem[]>) => {
-      state.items = (action.payload ?? []).map((it) => ({
-        ...it,
-        price: Number(it.price),
-      }));
+    setWishlist: (_, action: PayloadAction<string[]>) => {
+      return action.payload;
     },
 
-    /** Προσθήκη (αν δεν υπάρχει ήδη) */
-    addToWishlist: (state, action: PayloadAction<WishlistItem>) => {
-      const exists = findItem(state, action.payload.productId);
-      if (!exists) {
-        state.items.push({
-          ...action.payload,
-          price: Number(action.payload.price),
-        });
+    addToWishlist: (state, action: PayloadAction<string>) => {
+      if (!state.includes(action.payload)) {
+        state.push(action.payload);
       }
     },
 
-    /** Αφαίρεση */
     removeFromWishlist: (state, action: PayloadAction<string>) => {
-      state.items = state.items.filter((i) => i.productId !== action.payload);
+      return state.filter((id) => id !== action.payload);
     },
 
-    /** Καθάρισμα */
-    clearWishlist: (state) => {
-      state.items = [];
+    clearWishlist: () => {
+      return [];
     },
   },
 });

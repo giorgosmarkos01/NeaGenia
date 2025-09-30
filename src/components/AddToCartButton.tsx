@@ -5,7 +5,8 @@ import { setCart } from "@/store/cartSlice";
 import { useRef, useState } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
-import { RootState } from "@/store/store"; // ✅ Προσθέτουμε το RootState από το store σου
+import { RootState } from "@/store/store";
+import type { CartItem } from "@/store/cartSlice";
 
 type ApiProduct = {
   id: string;
@@ -14,8 +15,6 @@ type ApiProduct = {
   stock_status?: string;
   slug?: string;
 };
-
-import type { CartItem } from "@/store/cartSlice";
 
 function isEnabled(status?: string) {
   const s = (status || "").toLowerCase();
@@ -26,10 +25,9 @@ export default function AddToCartButton({ product }: { product: ApiProduct }) {
   const dispatch = useDispatch();
   const items: CartItem[] = useSelector(
     (state: RootState) => state.cart?.items ?? []
-  ); // ✅ Χρησιμοποιούμε RootState αντί για any
+  );
 
   const storeQty = items.find((it) => it.productId === product.id)?.qty ?? 0;
-
   const [loading, setLoading] = useState(false);
   const lock = useRef(false);
   const enabled = isEnabled(product.stock_status);
@@ -56,10 +54,7 @@ export default function AddToCartButton({ product }: { product: ApiProduct }) {
       }),
     });
     const data = await parseJsonSafe(res);
-    if (!res.ok) {
-      console.error("POST /api/cart/items failed:", data);
-      throw new Error(data?.error || res.statusText);
-    }
+    if (!res.ok) throw new Error(data?.error || res.statusText);
     return data;
   };
 
@@ -70,10 +65,7 @@ export default function AddToCartButton({ product }: { product: ApiProduct }) {
       body: JSON.stringify({ productId: product.id }),
     });
     const data = await parseJsonSafe(res);
-    if (!res.ok) {
-      console.error("DELETE /api/cart/items failed:", data);
-      throw new Error(data?.error || res.statusText);
-    }
+    if (!res.ok) throw new Error(data?.error || res.statusText);
     return data;
   };
 
@@ -111,11 +103,6 @@ export default function AddToCartButton({ product }: { product: ApiProduct }) {
     }
   };
 
-  const btn =
-    "px-4 py-2 text-sm font-medium rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-400";
-  const orange =
-    "bg-orange-500 text-white hover:bg-orange-600 disabled:opacity-60 disabled:cursor-not-allowed";
-
   const detailsLabel = "Details";
 
   return (
@@ -127,7 +114,9 @@ export default function AddToCartButton({ product }: { product: ApiProduct }) {
               key="add"
               onClick={handleAdd}
               disabled={loading}
-              className={`${btn} ${orange}`}
+              className="add-button flex items-center justify-center gap-2 
+             px-4 py-2 sm:px-5 sm:py-2 
+             text-sm sm:text-base font-semibold rounded-lg"
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
@@ -135,11 +124,33 @@ export default function AddToCartButton({ product }: { product: ApiProduct }) {
               whileTap={{ scale: 0.97 }}
               aria-label="Add to cart"
             >
-              {loading
-                ? "Adding..."
-                : product.stock_status?.toLowerCase() === "preorder"
-                ? "Preorder"
-                : "Add to Cart"}
+              {loading ? (
+                "adding..."
+              ) : product.stock_status?.toLowerCase() === "preorder" ? (
+                "Preorder"
+              ) : (
+                <>
+                  {/* Εικονίδιο */}
+                  <svg
+                    viewBox="0 0 24 24"
+                    className="h-5 w-5 sm:h-6 sm:w-6"
+                    fill="none"
+                  >
+                    <path
+                      d="M3 4h2l2 12a2 2 0 002 2h8a2 2 0 002-2l1-8H6"
+                      stroke="currentColor"
+                      strokeWidth="1.8"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                    <circle cx="10" cy="20" r="1" fill="currentColor" />
+                    <circle cx="18" cy="20" r="1" fill="currentColor" />
+                  </svg>
+
+                  {/* Κείμενο */}
+                  <span className="hidden sm:inline">Add to Cart</span>
+                </>
+              )}
             </motion.button>
           ) : (
             <motion.div
@@ -151,7 +162,7 @@ export default function AddToCartButton({ product }: { product: ApiProduct }) {
             >
               <Link
                 href={`/products/${product.slug || product.id}`}
-                className={`${btn} bg-gray-800 text-white hover:bg-gray-900`}
+                className="px-4 py-2 text-sm font-medium rounded-lg bg-gray-800 text-white hover:bg-gray-900"
               >
                 {detailsLabel}
               </Link>
@@ -160,7 +171,7 @@ export default function AddToCartButton({ product }: { product: ApiProduct }) {
         ) : (
           <motion.div
             key="qty"
-            className="inline-flex items-center rounded-lg border border-orange-500 overflow-hidden"
+            className="add-button inline-flex items-center rounded-lg border  overflow-hidden"
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
@@ -169,10 +180,7 @@ export default function AddToCartButton({ product }: { product: ApiProduct }) {
             <motion.button
               onClick={handleMinus}
               disabled={loading}
-              className={`${btn.replace(
-                "px-4",
-                "px-3"
-              )} bg-orange-500 text-white hover:bg-orange-600`}
+              className="add-button  px-3 py-2 text-sm font-medium  "
               whileTap={{ scale: 0.95 }}
               aria-label="Decrease quantity"
             >
@@ -184,10 +192,7 @@ export default function AddToCartButton({ product }: { product: ApiProduct }) {
             <motion.button
               onClick={handlePlus}
               disabled={loading}
-              className={`${btn.replace(
-                "px-4",
-                "px-3"
-              )} bg-orange-500 text-white hover:bg-orange-600`}
+              className="add-button px-3 py-2 text-sm font-medium  "
               whileTap={{ scale: 0.95 }}
               aria-label="Increase quantity"
             >

@@ -10,10 +10,12 @@
   },
   "dependencies": {
     "@clerk/nextjs": "^6.31.3",
+    "@emailjs/browser": "^4.4.1",
     "@reduxjs/toolkit": "^2.8.2",
     "@types/uuid": "^10.0.0",
     "clsx": "^2.1.1",
     "framer-motion": "^12.23.12",
+    "lottie-react": "^2.4.1",
     "lucide-react": "^0.539.0",
     "mysql2": "^3.14.3",
     "next": "^15.5.3",
@@ -25,6 +27,7 @@
     "redux-persist": "^6.0.0",
     "remark-gfm": "^4.0.1",
     "sharp": "^0.34.4",
+    "swiper": "^12.0.2",
     "uuid": "^11.1.0"
   },
   "devDependencies": {

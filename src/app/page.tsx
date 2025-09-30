@@ -23,7 +23,7 @@ export default async function ProductsPage() {
           ))}
         </div>
       </div>
-      {/* <FeaturedProducts /> */}
+
       <Footer />
     </>
   );
