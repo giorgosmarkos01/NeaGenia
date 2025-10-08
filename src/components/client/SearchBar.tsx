@@ -12,7 +12,7 @@ type SearchItem = {
   imageUrl?: string | null;
 };
 
-const baseUrl = "https://svkroboticsedu.com";
+const baseUrl = "https://svkroboticstore.com";
 const fallbackImage = "/logo.png";
 
 export default function SearchBar() {

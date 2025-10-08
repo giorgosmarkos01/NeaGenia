@@ -8,7 +8,7 @@ type Props = {
   onClose: () => void;
   qty: number;
   productName: string;
-  autoCloseMs?: number; // default 3000
+  autoCloseMs?: number;
 };
 
 export default function CartModal({

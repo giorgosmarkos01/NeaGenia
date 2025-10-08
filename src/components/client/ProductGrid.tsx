@@ -30,7 +30,7 @@ export default async function ProductGrid({
   if (key === "popular") {
     products = await getProductsPopular(limit);
   } else if (key === "all-items") {
-    products = await getProductsAll(limit);
+    products = await getProductsAll(100);
   } else {
     // category grid
     products = await getProductsByCategory(key, limit);
