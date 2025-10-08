@@ -128,17 +128,13 @@ export async function getProductsPopular(limit = 24) {
 }
 
 export async function getProductsByCategory(category: string, limit = 24) {
-  const key = (category || "").toLowerCase();
+  const key = (category ?? "").trim().toLowerCase();
 
-  if (key === "all-items") {
-    return getProductsAll(limit);
-  }
-  if (key === "popular") {
-    return getProductsPopular(limit);
-  }
+  if (key === "all-items") return getProductsAll(limit);
+  if (key === "popular") return getProductsPopular(limit);
 
   const cached = unstable_cache(
-    () => fetchProductsByCategory(category, limit),
+    () => fetchProductsByCategory(key, limit),
     ["products-by-category", key, String(limit)],
     { revalidate: 600 }
   );

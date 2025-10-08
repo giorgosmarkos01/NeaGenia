@@ -46,9 +46,6 @@ export default function StockPill({ status }: { status?: string }) {
   const key = normalize(status);
   const conf = MAP[key] ?? { label: "Status unknown", cls: "bg-zinc-50 text-zinc-700 ring-zinc-200" };
 
-  // Uncomment temporarily to debug incoming values
-  console.log(`[StockPill] raw="${status}" normalized="${key}"`);
-
   return (
     <span className={`inline-flex items-center rounded-full px-4 py-1.5 text-sm font-medium ring-1 ${conf.cls}`}>
       {conf.label}
