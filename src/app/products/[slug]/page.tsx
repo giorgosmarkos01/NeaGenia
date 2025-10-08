@@ -1,32 +1,34 @@
 import type { Metadata } from "next";
-import ProductDetails from "./ProductDetails";
+import { notFound } from "next/navigation";
+import { getItemDetailBySlug } from "@/data/product";
+import ProductDetailsClient from "@/components/client/ProductDetailsClient";
 
-type Props = { params: Promise<{ slug: string }> };
+export const dynamic = "force-dynamic";
 
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const { slug } = await params; // 👈 must await
+type Params = { slug: string };
+
+/* ---------- Metadata ---------- */
+export async function generateMetadata(
+  { params }: { params: Promise<Params> }
+): Promise<Metadata> {
+  const { slug } = await params;
 
   try {
-    const res = await fetch(
-      `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/items/${slug}`,
-      { cache: "no-store" }
-    );
-
-    if (!res.ok) {
+    const item = await getItemDetailBySlug(slug);
+    if (!item) {
       return {
         title: `${slug} | SVK ROBOTICS`,
         description: `Details and specifications for ${slug} from SVK ROBOTICS.`,
       };
     }
-
-    const data = await res.json();
-    const product = data.item;
-
     return {
-      title: `${product?.name ?? slug} | SVK ROBOTICS`,
+      title: `${item.name} | SVK ROBOTICS`,
       description:
-        product?.description_short ??
-        `Details and specifications for ${slug} from SVK ROBOTICS.`,
+        item.descriptionShort ??
+        `Details and specifications for ${item.name} from SVK ROBOTICS.`,
+      openGraph: {
+        images: item.coverImage ? [item.coverImage] : [],
+      },
     };
   } catch {
     return {
@@ -36,7 +38,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }
 }
 
-export default async function ProductPage({ params }: Props) {
-  const { slug } = await params; // 👈 must await
-  return <ProductDetails slug={slug} />;
+/* ---------- Page ---------- */
+export default async function ProductPage(
+  { params }: { params: Promise<Params> }
+) {
+  const { slug } = await params;
+
+  const item = await getItemDetailBySlug(slug);
+  if (!item) notFound();               // <-- narrow here
+
+  return <ProductDetailsClient item={item} />; // item is ProductDetail now
 }

@@ -1,4 +1,3 @@
-// src/lib/viva/getAccessToken.ts
 export async function getAccessToken(): Promise<string> {
   const auth = Buffer.from(
     `${process.env.VIVA_CLIENT_ID}:${process.env.VIVA_CLIENT_SECRET}`

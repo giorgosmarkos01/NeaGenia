@@ -1,4 +1,3 @@
-// src/lib/viva/createPaymentOrder.ts
 import { getAccessToken } from "./getAccessToken";
 
 export interface VivaCustomer {

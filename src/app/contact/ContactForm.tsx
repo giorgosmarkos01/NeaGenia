@@ -1,11 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
+import Navbar from "@/components/client/Header";
+import Footer from "@/components/client/Footer";
 import emailjs from "@emailjs/browser";
 import Lottie from "lottie-react";
-import ContactAnimation from "@/../public/lotties/Contact.json"; // 👉 το json σου
+import ContactAnimation from "@/../public/lotties/Contact.json";
 
 export default function ContactPage() {
   const [form, setForm] = useState({

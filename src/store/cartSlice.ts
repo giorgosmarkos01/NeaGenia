@@ -1,161 +1,189 @@
-import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
 
 export interface CartItem {
   productId: string;
   name: string;
-  price: number; // keep numeric in state
+  price: number;
   qty: number;
+  imageUrl?: string | null;
+  subtotal?: number;
 }
 
 interface CartState {
   items: CartItem[];
+  status: "idle" | "loading" | "succeeded" | "failed";
+  error?: string | null;
+  lastSyncedAt?: number;
 }
 
 const initialState: CartState = {
   items: [],
+  status: "idle",
+  error: null,
 };
 
-const findItem = (state: CartState, productId: string) =>
-  state.items.find((i) => i.productId === productId);
+// ---- tiny fetch helper (always JSON, throws on !ok) ----
+async function fetchJSON<T>(
+  url: string,
+  init?: RequestInit & { signal?: AbortSignal }
+): Promise<T> {
+  const res = await fetch(url, {
+    headers: { "Content-Type": "application/json", ...(init?.headers || {}) },
+    ...init,
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    const msg = (data && (data.error || data.message)) || `HTTP ${res.status}`;
+    throw new Error(msg);
+  }
+  return data as T;
+}
 
+// ================== THUNKS (no optimistic UI) ==================
+type ItemsPayload = { items: CartItem[] };
+
+export const fetchCart = createAsyncThunk<
+  ItemsPayload,
+  void,
+  { rejectValue: string }
+>("cart/fetchCart", async (_, { signal, rejectWithValue }) => {
+  try {
+    // NOTE: use /api/cart/items to match your components
+    return await fetchJSON<ItemsPayload>("/api/cart/items", {
+      method: "GET",
+      signal,
+    });
+  } catch (e: any) {
+    return rejectWithValue(e.message ?? "Failed to fetch cart");
+  }
+});
+
+export const setItemAbs = createAsyncThunk<
+  ItemsPayload,
+  { productId: string; qty: number; price?: number; variantIds?: number[] },
+  { rejectValue: string }
+>("cart/setItemAbs", async (body, { signal, rejectWithValue }) => {
+  try {
+    return await fetchJSON<ItemsPayload>("/api/cart/items", {
+      method: "POST",
+      body: JSON.stringify({ ...body, abs: true }),
+      signal,
+    });
+  } catch (e: any) {
+    return rejectWithValue(e.message ?? "Failed to update item");
+  }
+});
+
+export const addDelta = createAsyncThunk<
+  ItemsPayload,
+  { productId: string; delta: number; price?: number; variantIds?: number[] },
+  { rejectValue: string }
+>(
+  "cart/addDelta",
+  async ({ productId, delta, price, variantIds }, { signal, rejectWithValue }) => {
+    try {
+      return await fetchJSON<ItemsPayload>("/api/cart/items", {
+        method: "POST",
+        body: JSON.stringify({ productId, qty: delta, price, variantIds }),
+        signal,
+      });
+    } catch (e: any) {
+      return rejectWithValue(e.message ?? "Failed to change quantity");
+    }
+  }
+);
+
+export const removeItem = createAsyncThunk<
+  ItemsPayload,
+  { productId: string },
+  { rejectValue: string }
+>("cart/removeItem", async ({ productId }, { signal, rejectWithValue }) => {
+  try {
+    return await fetchJSON<ItemsPayload>("/api/cart/items", {
+      method: "DELETE",
+      body: JSON.stringify({ productId }),
+      signal,
+    });
+  } catch (e: any) {
+    return rejectWithValue(e.message ?? "Failed to remove item");
+  }
+});
+
+// ================== SLICE ==================
 const cartSlice = createSlice({
   name: "cart",
   initialState,
   reducers: {
-    /** Replace entire cart from server payload */
+    clearCart: (state) => {
+      state.items = [];
+      state.status = "idle";
+      state.error = null;
+      state.lastSyncedAt = Date.now();
+    },
     setCart: (state, action: PayloadAction<CartItem[]>) => {
-      // normalize price to number just in case server sends string
       state.items = (action.payload ?? []).map((it) => ({
         ...it,
         price: Number(it.price),
       }));
+      state.status = "succeeded";
+      state.error = null;
+      state.lastSyncedAt = Date.now();
     },
+  },
+  extraReducers: (b) => {
+    const onPending = (s: CartState) => {
+      s.status = "loading";
+      s.error = null;
+    };
+    const onFulfilled = (s: CartState, a: PayloadAction<ItemsPayload>) => {
+      s.items = (a.payload.items ?? []).map((it) => ({
+        ...it,
+        price: Number(it.price),
+      }));
+      s.status = "succeeded";
+      s.error = null;
+      s.lastSyncedAt = Date.now();
+    };
+    const onRejected = (s: CartState, a: any) => {
+      s.status = "failed";
+      s.error = a?.payload || a?.error?.message || "Request failed";
+    };
 
-    /** Add with explicit qty (existing: qty += payload.qty) */
-    addItem: (state, action: PayloadAction<CartItem>) => {
-      const { productId, name, price, qty } = action.payload;
-      const existing = findItem(state, productId);
-      if (existing) {
-        existing.qty += qty;
-      } else {
-        state.items.push({
-          productId,
-          name,
-          price: Number(price),
-          qty,
-        });
-      }
-    },
-
-    /** Remove the entire line */
-    removeItem: (state, action: PayloadAction<string>) => {
-      state.items = state.items.filter((i) => i.productId !== action.payload);
-    },
-
-    /** Set absolute qty for an item (0 removes it) */
-    setItemQty: (
-      state,
-      action: PayloadAction<{ productId: string; qty: number }>
-    ) => {
-      const { productId, qty } = action.payload;
-      const item = findItem(state, productId);
-      if (!item) return;
-      if (qty <= 0) {
-        state.items = state.items.filter((i) => i.productId !== productId);
-      } else {
-        item.qty = qty;
-      }
-    },
-
-    /** Your original name kept for backwards compatibility */
-    updateQty: (
-      state,
-      action: PayloadAction<{ productId: string; qty: number }>
-    ) => {
-      const { productId, qty } = action.payload;
-      const item = findItem(state, productId);
-      if (!item) return;
-      if (qty <= 0) {
-        state.items = state.items.filter((i) => i.productId !== productId);
-      } else {
-        item.qty = qty;
-      }
-    },
-
-    /** +1 local increment */
-    incrementItem: (state, action: PayloadAction<string>) => {
-      const item = findItem(state, action.payload);
-      if (item) item.qty += 1;
-    },
-
-    /** -1 local decrement (removes if hits 0) */
-    decrementItem: (state, action: PayloadAction<string>) => {
-      const productId = action.payload;
-      const item = findItem(state, productId);
-      if (!item) return;
-      item.qty -= 1;
-      if (item.qty <= 0) {
-        state.items = state.items.filter((i) => i.productId !== productId);
-      }
-    },
-
-    /** Add/remove by delta; creates line if needed (for +delta) */
-    upsertDelta: (
-      state,
-      action: PayloadAction<{
-        productId: string;
-        name: string;
-        price: number | string;
-        delta: number;
-      }>
-    ) => {
-      const { productId, name, price, delta } = action.payload;
-      const item = findItem(state, productId);
-      if (!item) {
-        if (delta > 0) {
-          state.items.push({
-            productId,
-            name,
-            price: Number(price),
-            qty: delta,
-          });
-        }
-        return;
-      }
-      item.qty += delta;
-      if (item.qty <= 0) {
-        state.items = state.items.filter((i) => i.productId !== productId);
-      }
-    },
-
-    clearCart: (state) => {
-      state.items = [];
-    },
+    b.addCase(fetchCart.pending, onPending)
+      .addCase(fetchCart.fulfilled, onFulfilled)
+      .addCase(fetchCart.rejected, onRejected)
+      .addCase(setItemAbs.pending, onPending)
+      .addCase(setItemAbs.fulfilled, onFulfilled)
+      .addCase(setItemAbs.rejected, onRejected)
+      .addCase(addDelta.pending, onPending)
+      .addCase(addDelta.fulfilled, onFulfilled)
+      .addCase(addDelta.rejected, onRejected)
+      .addCase(removeItem.pending, onPending)
+      .addCase(removeItem.fulfilled, onFulfilled)
+      .addCase(removeItem.rejected, onRejected);
   },
 });
 
-export const {
-  setCart,
-  addItem,
-  removeItem,
-  setItemQty,
-  updateQty, // kept for compatibility
-  incrementItem,
-  decrementItem,
-  upsertDelta,
-  clearCart,
-} = cartSlice.actions;
-
+export const { clearCart, setCart } = cartSlice.actions;
 export default cartSlice.reducer;
 
-/** Optional helpers/selectors */
-export const selectCartItems = (s: any): CartItem[] => s.cart?.items ?? [];
-export const selectQtyById = (id: string) => (s: any) =>
-  (s.cart?.items ?? []).find((i: CartItem) => i.productId === id)?.qty ?? 0;
+// ================== SELECTORS ==================
+export const selectCartState = (s: any): CartState => s.cart ?? initialState;
+export const selectCartItems = (s: any): CartItem[] => selectCartState(s).items;
+export const selectCartStatus = (s: any) => selectCartState(s).status;
+export const selectCartError = (s: any) => selectCartState(s).error;
+
+export const selectQtyById =
+  (id: string) => (s: any) =>
+    selectCartItems(s).find((i) => i.productId === id)?.qty ?? 0;
+
 export const selectCount = (s: any) =>
-  (s.cart?.items ?? []).reduce((sum: number, i: CartItem) => sum + i.qty, 0);
+  selectCartItems(s).reduce((sum, i) => sum + i.qty, 0);
+
 export const selectSubtotal = (s: any) =>
-  (s.cart?.items ?? []).reduce(
-    (sum: number, i: CartItem) => sum + i.qty * Number(i.price),
+  selectCartItems(s).reduce(
+    (sum, i) =>
+      sum +
+      (typeof i.subtotal === "number" ? i.subtotal : i.qty * Number(i.price)),
     0
   );
