@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 
-import Navbar from "@/components/client/Header";
+import Navbar from "@/components/client/Navbar";
 import Footer from "@/components/client/Footer";
 import CategoryFilterBar from "@/components/server/CategoryFilterBar";
 import Breadcrumbs from "@/components/client/Breadcrumbs";

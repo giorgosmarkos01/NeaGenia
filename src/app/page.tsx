@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import Header from "@/components/client/Header";
+import Navbar from "@/components/client/Navbar";
 import Footer from "@/components/client/Footer";
 import HeroBanner from "@/components/client/HeroBanner";
 import ProductGrid, { ProductGridSkeleton } from "@/components/client/ProductGrid";
@@ -10,7 +10,7 @@ export const revalidate = 0;
 export default async function ProductsPage() {
   return (
     <>
-      <Header />
+      <Navbar />
       <HeroBanner />
       <div className="p-4 sm:p-6 bg-white">
         <h1 className="text-xl sm:text-2xl font-bold mb-6 text-black text-center">

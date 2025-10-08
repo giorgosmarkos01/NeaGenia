@@ -19,38 +19,51 @@ const ACTIVE = `
   AND (d.ends_at   IS NULL OR d.ends_at   >= NOW())
 `;
 
+/**
+ * We treat category.name as the slug (your names are already like 'robot-kits').
+ * No hierarchy — exact match on category.name.
+ */
 export async function getDiscountsByCategorySlug(slug: string): Promise<DiscountSummary[]> {
-  const cat = await queryRows<{ id: number } & RowDataPacket>(
-    `SELECT id FROM category WHERE slug = ? LIMIT 1`, [slug]
-  );
-  if (!cat.length) return [];
-  const rootId = cat[0].id;
+  const key = (slug ?? "").trim().toLowerCase();
+
+  // If you have virtual categories like "all-items"/"popular", handle them here or upstream.
+  if (!key || key === "all-items" || key === "popular") {
+    // Return [] or route to a different function if you want global/virtual discounts:
+    // return getGlobalActiveDiscounts();
+    return [];
+  }
 
   type Row = {
-    id: number; name: string; discount_type: "fixed"|"percent";
-    value: string|number; starts_at: string|null; ends_at: string|null;
-    stackable: 0|1; coupon_code: string|null; applies_to_category_id: number;
+    id: number;
+    name: string;
+    discount_type: "fixed" | "percent";
+    value: string | number;
+    starts_at: string | null;
+    ends_at: string | null;
+    stackable: 0 | 1;
+    coupon_code: string | null;
+    applies_to_category_id: number;
   } & RowDataPacket;
 
+  // MySQL utf8mb4_unicode_ci is case-insensitive, so c.name = ? is fine.
+  // If you later change collations, you can do LOWER(c.name) = ? and pass the lowercase key.
   const rows = await queryRows<Row>(
     `
-    WITH RECURSIVE cat_tree AS (
-      SELECT id FROM category WHERE id = ?
-      UNION ALL
-      SELECT c.id FROM category c JOIN cat_tree ct ON c.parent_id = ct.id
-    )
-    SELECT d.id, d.name, d.discount_type, d.value, d.starts_at, d.ends_at,
-           d.stackable, d.coupon_code,
-           dc.category_id AS applies_to_category_id
+    SELECT
+      d.id, d.name, d.discount_type, d.value, d.starts_at, d.ends_at,
+      d.stackable, d.coupon_code,
+      dc.category_id AS applies_to_category_id
     FROM discount d
     JOIN discount_category dc ON dc.discount_id = d.id
-    JOIN cat_tree t ON t.id = dc.category_id
-    WHERE ${ACTIVE}
+    JOIN category c          ON c.id           = dc.category_id
+    WHERE c.name = ?
+      AND ${ACTIVE}
     ORDER BY d.id DESC
-    `, [rootId]
+    `,
+    [key]
   );
 
-  return rows.map(r => ({
+  return rows.map((r) => ({
     id: r.id,
     name: r.name,
     type: r.discount_type,

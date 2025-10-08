@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import Navbar from "@/components/client/Header";
+import Navbar from "@/components/client/Navbar";
 import Footer from "@/components/client/Footer";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";

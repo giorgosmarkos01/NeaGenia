@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import Navbar from "@/components/client/Header";
+import Navbar from "@/components/client/Navbar";
 import Footer from "@/components/client/Footer";
 import emailjs from "@emailjs/browser";
 import Lottie from "lottie-react";

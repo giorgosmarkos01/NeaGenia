@@ -14,7 +14,7 @@ function cn(...xs: (string | false | null | undefined)[]) {
   return xs.filter(Boolean).join(" ");
 }
 
-export default function Header() {
+export default function Navbar() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
 
