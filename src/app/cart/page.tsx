@@ -21,7 +21,7 @@ import type { Discount } from "@/types/discount";
 import { pickDiscountsForProduct } from "@/utils/discounts";
 
 const fallbackImage = "/logo.png";
-const baseUrl = "https://svkroboticsedu.com";
+const baseUrl = "https://svkroboticstore.com";
 
 /** Fetch discounts applicable to a given itemId (should include item + category discounts for that item) */
 async function fetchDiscountsForItem(itemId: string): Promise<Discount[]> {
