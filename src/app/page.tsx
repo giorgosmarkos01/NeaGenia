@@ -1,29 +1,27 @@
-import Navbar from "@/components/Navbar";
-import ProductCard from "@/components/ProductCard";
-import FeaturedProducts from "@/components/FeaturedProducts";
-import Footer from "@/components/Footer";
-import HeroBanner from "@/components/HeroBanner";
+// app/products/page.tsx
+import { Suspense } from "react";
+import Header from "@/components/client/Header";
+import Footer from "@/components/client/Footer";
+import HeroBanner from "@/components/client/HeroBanner";
+import ProductGrid, { ProductGridSkeleton } from "@/components/client/ProductGrid";
 
-import { getAllProducts } from "@/data/product";
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 export default async function ProductsPage() {
-  const products = await getAllProducts();
-
   return (
     <>
-      <Navbar />
+      <Header />
       <HeroBanner />
       <div className="p-4 sm:p-6 bg-white">
         <h1 className="text-xl sm:text-2xl font-bold mb-6 text-black text-center">
           Popular products
         </h1>
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 sm:gap-8 ml-auto mr-auto max-w-6xl">
-          {products.map((p) => (
-            <ProductCard key={p.slug} product={p} />
-          ))}
-        </div>
-      </div>
 
+        <Suspense fallback={<ProductGridSkeleton />}>
+          <ProductGrid category="popular" limit={24} />
+        </Suspense>
+      </div>
       <Footer />
     </>
   );

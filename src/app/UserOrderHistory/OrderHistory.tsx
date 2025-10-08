@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
+import Navbar from "@/components/client/Header";
+import Footer from "@/components/client/Footer";
 
 interface Order {
   order_id: string;

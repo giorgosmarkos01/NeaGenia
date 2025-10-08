@@ -1,9 +1,9 @@
 "use client";
 
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
+import Navbar from "@/components/client/Header";
+import Footer from "@/components/client/Footer";
 import Lottie from "lottie-react";
-import AboutAnimation from "@/../public/lotties/About.json"; // ✅ import κανονικά
+import AboutAnimation from "@/../public/lotties/About.json";
 
 export default function AboutPage() {
   return (

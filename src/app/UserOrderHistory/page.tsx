@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import OrderHistory from "./OrderHistory";
-import Cart from "../cart/Cart";
 
 export const metadata: Metadata = {
   title: "Order History | SVK ROBOTICS",
