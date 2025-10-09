@@ -41,7 +41,7 @@ export default function ContactPage() {
           to_name: "SVK Robotics",
           to_email: "info@svkrobotics.com",
         },
-        process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY!
+        "itFqmuVTo9hyQGmL8" // public key απευθείας.  process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY!
       );
 
       setStatus("success");
