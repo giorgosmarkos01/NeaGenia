@@ -53,6 +53,21 @@ export default function CheckoutPage() {
   // BoxNow locker
   const [boxNowLocker, setBoxNowLocker] = useState<any>(null);
 
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let value = e.target.value;
+
+    // Επιτρέπεται μόνο + στην αρχή και μετά αριθμοί
+    value = value.replace(/[^\d+]/g, "");
+
+    // Αν δεν είναι το πρώτο χαρακτήρας το + → αφαίρεσέ το
+    if (value.indexOf("+") > 0) {
+      value = value.replace(/\+/g, "");
+    }
+
+    // Αν δεν έχει αρκετά ψηφία, απλά κρατάμε όσα έχει
+    setPhone(value);
+  };
+
   // -------- Discount-aware subtotal (use server snapshot if present) --------
   const discountedSubtotal = useMemo(() => {
     return items.reduce((sum, it: any) => {
@@ -380,7 +395,7 @@ export default function CheckoutPage() {
                       required
                       type="tel"
                       value={phone_number}
-                      onChange={(e) => setPhone(e.target.value)}
+                      onChange={handlePhoneChange}
                       className="w-full border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
