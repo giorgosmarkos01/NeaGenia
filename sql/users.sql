@@ -52,3 +52,6 @@ CREATE TABLE cart_item_variations (
 
 ALTER TABLE carts DROP INDEX unique_user;
 ALTER TABLE carts DROP INDEX unique_session;
+
+ALTER TABLE orders
+ADD COLUMN user_id VARCHAR(191) COLLATE utf8mb4_unicode_ci NULL AFTER order_id;
