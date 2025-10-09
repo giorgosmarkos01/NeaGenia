@@ -18,6 +18,11 @@ export default function CheckoutPage() {
   const items = useSelector(selectCartItems);
   const count = useSelector(selectCount);
 
+  useEffect(() => {
+  // You should see an array of lines with id/slug/price/qty, etc.
+  console.log("[Checkout] items from Redux >", items);
+}, [items]);
+
   const [docType, setDocType] = useState<DocType>("receipt");
   const [agree, setAgree] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -46,6 +51,18 @@ export default function CheckoutPage() {
     getShippingOptions(country)
   );
 
+  // --- Coupon state ---
+  const [coupon, setCoupon] = useState("");
+  const [couponApplying, setCouponApplying] = useState(false);
+  const [couponError, setCouponError] = useState<string | null>(null);
+  const [showCoupon, setShowCoupon] = useState(false);
+
+  // itemId -> finalLineTotal (overlay from the server after coupon)
+  const [couponLineTotals, setCouponLineTotals] = useState<Record<string, number>>({});
+
+  // snapshot of before/after subtotals returned by API
+  const [couponSummary, setCouponSummary] = useState<{ subtotalBefore: number; subtotalAfter: number } | null>(null);
+
   // Strictly typed lists
   const greekProvinces = greekProvincesRaw as GreekRegion[];
   const countries = countriesRaw as Countries[];
@@ -56,15 +73,17 @@ export default function CheckoutPage() {
   // -------- Discount-aware subtotal (use server snapshot if present) --------
   const discountedSubtotal = useMemo(() => {
     return items.reduce((sum, it: any) => {
-      const baseUnit = Number(it?.price) || 0;
-      const qty = Number(it?.qty) || 0;
-      const line =
-        typeof it?.effectiveLineTotal === "number"
-          ? Number(it.effectiveLineTotal)
-          : baseUnit * qty;
-      return sum + line;
+      const base = Number(it?.price) * Number(it?.qty);
+      const overlay = couponLineTotals[it.productId];  // <-- use productId
+      return sum + (Number.isFinite(overlay) ? overlay : base);
     }, 0);
-  }, [items]);
+  }, [items, couponLineTotals]);
+
+  const appliedDiscountAmount = useMemo(() => {
+    if (!couponSummary) return 0;
+    const diff = Number(couponSummary.subtotalBefore) - Number(couponSummary.subtotalAfter);
+    return diff > 0 ? Number(diff.toFixed(2)) : 0;
+  }, [couponSummary]);
 
   // -------- Shipping cost (dynamic) --------
   const [shippingFee, setShippingFee] = useState<number>(() =>
@@ -626,6 +645,13 @@ export default function CheckoutPage() {
                 <span>{(Number(discountedSubtotal + shippingFee).toFixed(2))}€</span>
               </div>
 
+              {appliedDiscountAmount > 0 && (
+                <div className="flex justify-between text-sm mb-2">
+                  <span className="text-gray-700">Applied Discount:</span>
+                  <span className="text-green-700">- {appliedDiscountAmount.toFixed(2)}€</span>
+                </div>
+              )}
+
               <label className="flex items-start gap-2 text-sm mb-3">
                 <input
                   type="checkbox"
@@ -649,6 +675,106 @@ export default function CheckoutPage() {
               >
                 {loading ? "Placing order..." : "Order Now"}
               </button>
+
+              {/* Coupon section */}
+              {!showCoupon ? (
+                // Collapsed state: just a link-like button to reveal the input
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowCoupon(true);
+                    setCouponError(null);
+                  }}
+                  className="mt-4 text-sm text-blue-600 hover:underline cursor-pointer"
+                  aria-expanded="false"
+                  aria-controls="coupon-panel"
+                >
+                  Add Discount Code
+                </button>
+              ) : (
+                // Expanded state: your existing coupon UI
+                <div id="coupon-panel" className="mt-4 space-y-2">
+                  <label className="block text-sm text-gray-700">Add Discount Code</label>
+                  <div className="flex gap-2">
+                    <input
+                      value={coupon}
+                      onChange={(e) => setCoupon(e.target.value)}
+                      placeholder="Enter coupon"
+                      className="flex-1 border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                    <button
+                      type="button"
+                      disabled={!coupon || couponApplying}
+                      onClick={async () => {
+                        setCouponApplying(true);
+                        setCouponError(null);
+                        try {
+                          const payload = {
+                            coupon,
+                            items: items.map((it: any) => ({
+                              itemId: it.productId,           // <-- was it.id / it.slug; use productId
+                              unitPrice: Number(it.price),
+                              qty: Number(it.qty),
+                            })),
+                          };
+                          console.log("[Checkout] coupon payload >", payload);
+
+                          const res = await fetch("/api/discounts/coupons", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify(payload),
+                          });
+                          const data = await res.json();
+
+                          if (!res.ok || !data?.ok) {
+                            setCouponLineTotals({});
+                            setCouponSummary(null);
+                            setCouponError(data?.error || "Coupon not applicable.");
+                          } else {
+                            const map: Record<string, number> = {};
+                            for (const r of data.results as any[]) {
+                              // r.itemId will be the resolved UUID from the API
+                              map[r.itemId] = Number(r.finalLineTotal);
+                            }
+                            setCouponLineTotals(map);
+                            setCouponSummary({
+                              subtotalBefore: Number(data.subtotalBefore),
+                              subtotalAfter: Number(data.subtotalAfter),
+                            });
+                          }
+                        } catch {
+                          setCouponLineTotals({});
+                          setCouponSummary(null);
+                          setCouponError("Could not validate coupon right now.");
+                        } finally {
+                          setCouponApplying(false);
+                        }
+                      }}
+                      className="px-4 py-2 rounded-md bg-black text-white disabled:opacity-60 cursor-pointer disabled:cursor-not-allowed"
+                    >
+                      {couponApplying ? "..." : "Apply"}
+                    </button>
+                  </div>
+
+                  {couponError && <p className="text-sm text-red-600">{couponError}</p>}
+                  {appliedDiscountAmount > 0 && (
+                    <p className="text-sm text-green-700">
+                      Coupon applied! You saved {appliedDiscountAmount.toFixed(2)}€ on items.
+                    </p>
+                  )}
+
+                  {/* Optional: a hide link to collapse again */}
+                  <button
+                    type="button"
+                    onClick={() => setShowCoupon(false)}
+                    className="text-xs text-gray-500 hover:underline cursor-pointer"
+                    aria-expanded="true"
+                    aria-controls="coupon-panel"
+                  >
+                    Hide
+                  </button>
+                </div>
+              )}
             </aside>
           </form>
         )}

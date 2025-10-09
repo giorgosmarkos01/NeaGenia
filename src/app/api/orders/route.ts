@@ -1,16 +1,26 @@
+export const dynamic = "force-dynamic";
+
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { v4 as uuidv4 } from "uuid";
 import { auth } from "@clerk/nextjs/server";
 import { cookies } from "next/headers";
 import { createPaymentOrder } from "@/lib/viva/createPaymentOrder";
-import { computeOrderTotals } from "@/helpers/itemPricing"; // authoritative line pricing
+import { computeOrderTotals } from "@/helpers/itemPricing";
+import { applyCouponServerSide } from "@/helpers/couponApply";
 
 type ShipCode = "ELTA" | "FEDEX" | "BOXNOW";
 
 function normShipping(s?: string): ShipCode {
   const v = (s || "").toUpperCase();
   if (v === "ELTA" || v === "FEDEX" || v === "BOXNOW") return v as ShipCode;
+  return "ELTA";
+}
+
+// Convert our internal shipping code to DB enum values ('ELTA','FedEx','BoxNow')
+function toDbShipEnum(s: ShipCode): "ELTA" | "FedEx" | "BoxNow" {
+  if (s === "FEDEX") return "FedEx";
+  if (s === "BOXNOW") return "BoxNow";
   return "ELTA";
 }
 
@@ -27,7 +37,6 @@ async function getCartIdForCurrentUser() {
     if (row?.id) return { cartId: row.id, userId };
 
     const newId = uuidv4();
-    // minimal insert; other columns (expires_at, etc.) are optional
     await db.query(`INSERT INTO carts (id, user_id) VALUES (?, ?)`, [newId, userId]);
     return { cartId: newId, userId };
   }
@@ -40,10 +49,10 @@ async function getCartIdForCurrentUser() {
 }
 
 /**
- * Get validated shipping cost on the server.
- * - BOXNOW => €3 (per your request)
- * - ELTA   => call your own internal API /api/delivery/calculate to reuse JSON rules
- * - FEDEX  => €0 (adjust if needed)
+ * Server-validated shipping:
+ * - BOXNOW => €3
+ * - FEDEX  => €10
+ * - ELTA   => call internal calculator
  */
 async function validateShippingCostOnServer(opts: {
   req: Request;
@@ -53,14 +62,13 @@ async function validateShippingCostOnServer(opts: {
 }): Promise<number> {
   const { req, ship, address, lines } = opts;
 
-  if (ship === "BOXNOW") return 3.0; // <-- fixed per your requirement
-  if (ship === "FEDEX") return 0.0;  // change as needed
+  if (ship === "BOXNOW") return 3.0;
+  if (ship === "FEDEX") return 10.0;
 
   if (ship === "ELTA") {
-    // Fetch item weights to pass to the calculator (expects grams)
     if (!lines.length) return 4.35;
 
-    const ids = lines.map(l => l.productId);
+    const ids = lines.map((l) => l.productId);
     const placeholders = ids.map(() => "?").join(",");
     const [wrows]: any[] = await db.query(
       `SELECT id, weight FROM item WHERE id IN (${placeholders})`,
@@ -71,7 +79,6 @@ async function validateShippingCostOnServer(opts: {
       weightById.set(String(r.id), Number(r.weight) || 0);
     }
 
-    // Build payload for internal API using absolute URL derived from incoming req
     const base = new URL(req.url);
     const calcUrl = new URL("/api/delivery/calculate", `${base.origin}`).toString();
 
@@ -81,7 +88,7 @@ async function validateShippingCostOnServer(opts: {
       zip: address.zip,
       country: address.country,
       shippingOption: "ELTA",
-      items: lines.map(l => ({
+      items: lines.map((l) => ({
         product: { weight: weightById.get(l.productId) ?? 0 },
         quantity: l.qty,
       })),
@@ -91,16 +98,11 @@ async function validateShippingCostOnServer(opts: {
       const res = await fetch(calcUrl, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        // The internal route does not need auth; if it does, forward cookies/headers here.
         body: JSON.stringify(payload),
-        // No-cache: every calculation should be fresh
         cache: "no-store",
       });
 
-      if (!res.ok) {
-        // fallback if calculator fails
-        return 4.35;
-      }
+      if (!res.ok) return 4.35;
       const data = await res.json();
       const cost = Number(data?.deliveryCost);
       return Number.isFinite(cost) ? cost : 4.35;
@@ -109,7 +111,6 @@ async function validateShippingCostOnServer(opts: {
     }
   }
 
-  // Default fallback
   return 4.35;
 }
 
@@ -134,6 +135,12 @@ export async function POST(req: Request) {
     company_zip,
     occupation,
     tax_office,
+    // optional
+    coupon,
+    // optional BoxNow locker fields if you later want to save them into delivery_details:
+    boxnowLockerId,
+    boxnowLockerPostalCode,
+    boxnowLockerAddressLine1,
   } = body || {};
 
   // Basic validation
@@ -147,7 +154,15 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Missing delivery info" }, { status: 400 });
   }
   if (docType === "invoice") {
-    if (!company_name || !vat_number || !company_address || !company_city || !company_zip || !occupation || !tax_office) {
+    if (
+      !company_name ||
+      !vat_number ||
+      !company_address ||
+      !company_city ||
+      !company_zip ||
+      !occupation ||
+      !tax_office
+    ) {
       return NextResponse.json({ error: "Missing invoice info" }, { status: 400 });
     }
   }
@@ -155,18 +170,14 @@ export async function POST(req: Request) {
   const { cartId, userId } = await getCartIdForCurrentUser();
   const ship = normShipping(shipping);
 
-  // Authoritative server-side line pricing (discounts, variations, etc.)
-  // NOTE: computeOrderTotals currently has a static shipping rule internally;
-  // we'll ignore its shippingCost and recompute below.
+  // 1) Authoritative server-side line pricing (pre-discount)
   const { lines, subtotal } = await computeOrderTotals(cartId, ship);
   if (lines.length === 0) {
     return NextResponse.json({ error: "Cart is empty" }, { status: 400 });
   }
 
-  // Build a light list for shipping calc (productId + qty)
-  const forShip = lines.map(l => ({ productId: l.productId, qty: l.qty }));
-
-  // ✅ Server-validated shipping
+  // 2) Server-validated shipping (independent of coupon)
+  const forShip = lines.map((l) => ({ productId: l.productId, qty: l.qty }));
   const shippingCost = await validateShippingCostOnServer({
     req,
     ship,
@@ -174,26 +185,58 @@ export async function POST(req: Request) {
     lines: forShip,
   });
 
-  // Final total from authoritative subtotal + validated shipping
-  const total = Number((subtotal + shippingCost).toFixed(2));
+  // 3) Apply coupon server-side (only if provided)
+  let discountedSubtotal = subtotal;
+  let couponToSave: string | null = null;
+
+  if (typeof coupon === "string" && coupon.trim()) {
+    const res = await applyCouponServerSide(
+      coupon,
+      // use UUIDs (productId) to avoid slug ambiguity
+      lines.map((l) => ({ identifier: l.productId, qty: l.qty }))
+    );
+
+    if (res.reason === "invalid_coupon") {
+      // Reject orders with invalid/expired coupon
+      return NextResponse.json({ error: "Invalid or expired coupon." }, { status: 400 });
+    }
+
+    // Valid coupon (even if not applicable) → use server result
+    discountedSubtotal = res.subtotalAfter;
+    couponToSave = coupon.trim();
+  }
+
+  // 4) Totals: discounted subtotal + validated shipping
+  const total = Number((discountedSubtotal + shippingCost).toFixed(2));
 
   const order_id = uuidv4();
 
   try {
     await db.query("START TRANSACTION");
 
-    // Orders
+    // 5) Insert order (persist coupon_code)
     await db.query(
       `INSERT INTO orders
-        (order_id, user_id, customer_name, email, phone_number, order_type, total_amount, payment_status, orderCode)
-       VALUES (?, ?, ?, ?, ?, ?, ?, 'pending', NULL)`,
-      [order_id, userId ?? null, customer_name, email, phone_number, docType, total]
+         (order_id, user_id, customer_name, email, phone_number, total_amount,
+          payment_status, order_type, coupon_code, orderCode)
+       VALUES (?, ?, ?, ?, ?, ?, 'pending', ?, ?, NULL)`,
+      [
+        order_id,
+        userId ?? null,
+        customer_name,
+        email,
+        phone_number,
+        total,
+        docType,
+        couponToSave, // NULL if not provided
+      ]
     );
 
-    // Order items
+    // 6) Insert order items (your schema stores unit price; total_price is generated)
     for (const l of lines) {
-      const variationName =
-        l.variations.length ? l.variations.map(v => v.name).join(", ") : null;
+      const variationName = l.variations.length
+        ? l.variations.map((v) => v.name).join(", ")
+        : null;
 
       await db.query(
         `INSERT INTO order_items
@@ -203,30 +246,57 @@ export async function POST(req: Request) {
       );
     }
 
-    // Delivery details (save the validated shipping cost)
+    // 7) Delivery details (save normalized shipping option & cost)
     await db.query(
       `INSERT INTO delivery_details
-         (order_id, address_line, city, province, zip, country, shipping_option, cost, weight)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [order_id, address, city, province, zip, country, ship, shippingCost, 0.0]
+         (order_id, address_line, city, province, zip, country,
+          shipping_option, cost, weight,
+          box_now_locker_postal_code, box_now_locker_address_line1, box_now_locker_id)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [
+        order_id,
+        address,
+        city,
+        province,
+        zip,
+        country,
+        toDbShipEnum(ship), // convert to DB enum values
+        shippingCost,
+        0.0,
+        boxnowLockerPostalCode ?? null,
+        boxnowLockerAddressLine1 ?? null,
+        boxnowLockerId ?? null,
+      ]
     );
 
-    // Invoice details
+    // 8) Invoice details when needed
     if (docType === "invoice") {
       await db.query(
         `INSERT INTO invoice_details
            (order_id, company_name, company_address, company_city, company_zip, vat_number, occupation, tax_office)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-        [order_id, company_name, company_address, company_city, company_zip, vat_number, occupation, tax_office]
+        [
+          order_id,
+          company_name,
+          company_address,
+          company_city,
+          company_zip,
+          vat_number,
+          occupation,
+          tax_office,
+        ]
       );
+    } else {
+      // (Optional) create an empty receipt_details row if you want 1:1 parity
+      // await db.query(`INSERT INTO receipt_details (order_id) VALUES (?)`, [order_id]);
     }
 
-    // Clear cart
+    // 9) Clear cart
     await db.query(`DELETE FROM cart_items WHERE cart_id = ?`, [cartId]);
 
     await db.query("COMMIT");
 
-    // Create Viva order using validated total
+    // 10) Create Viva order using the server-trusted total
     const vivaResponse = await createPaymentOrder(Math.round(total * 100), {
       fullName: customer_name,
       email,
@@ -252,7 +322,9 @@ export async function POST(req: Request) {
       { status: 201 }
     );
   } catch (e) {
-    try { await db.query("ROLLBACK"); } catch {}
+    try {
+      await db.query("ROLLBACK");
+    } catch {}
     console.error("[orders] create error:", e);
     return NextResponse.json({ error: "Failed to create order" }, { status: 500 });
   }

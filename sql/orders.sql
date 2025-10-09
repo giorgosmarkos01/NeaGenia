@@ -9,9 +9,11 @@ CREATE TABLE orders (
   total_amount DECIMAL(10, 2) DEFAULT 0.00,
   payment_status ENUM('pending', 'completed', 'failed') DEFAULT 'pending',
   order_type ENUM('receipt', 'invoice') NOT NULL,
+  coupon_code VARCHAR(64) NULL, 
   orderCode VARCHAR(255) UNIQUE,
   INDEX idx_order_type (order_type),
-  INDEX idx_payment_status (payment_status)
+  INDEX idx_payment_status (payment_status),
+  INDEX idx_orders_coupon_code (coupon_code)
 ) ENGINE=InnoDB
   DEFAULT CHARSET=utf8mb4
   COLLATE=utf8mb4_unicode_ci;

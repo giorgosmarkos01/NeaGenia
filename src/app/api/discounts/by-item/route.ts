@@ -3,6 +3,8 @@ import { z } from "zod";
 import type { RowDataPacket } from "mysql2";
 import { queryRows } from "@/lib/db";
 
+const ENABLE_AUTO_DISCOUNTS = process.env.ENABLE_AUTO_DISCOUNTS === "1";
+
 // Reusable WHERE clause for the active time window
 const ACTIVE_WINDOW = `
   d.active = 1
@@ -16,6 +18,11 @@ const QuerySchema = z.object({
 
 export async function GET(req: Request) {
   try {
+
+    if (!ENABLE_AUTO_DISCOUNTS) {
+      return NextResponse.json({ discounts: [] }, { status: 200 });
+    }
+
     const { searchParams } = new URL(req.url);
     const parse = QuerySchema.safeParse({ itemId: searchParams.get("itemId") });
     if (!parse.success) {
