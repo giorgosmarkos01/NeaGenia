@@ -22,7 +22,10 @@ interface ProductCardProps {
   discounts?: Discount[]; // 👈 category (or mixed) discounts passed from ProductGrid
 }
 
-export default function ProductCard({ product, discounts = [] }: ProductCardProps) {
+export default function ProductCard({
+  product,
+  discounts = [],
+}: ProductCardProps) {
   const [loading, setLoading] = useState(false);
   const dispatch = useDispatch();
   const { isSignedIn } = useAuth();
@@ -113,7 +116,7 @@ export default function ProductCard({ product, discounts = [] }: ProductCardProp
       </Link>
 
       {/* Description */}
-      <p className="text-gray-500 text-xs sm:text-sm line-clamp-2 mb-2">
+      <p className="text-gray-500 text-xs sm:text-sm line-clamp-2 mb-0">
         {product.descriptionShort}
       </p>
 
@@ -130,8 +133,8 @@ export default function ProductCard({ product, discounts = [] }: ProductCardProp
       )}
 
       {/* Footer: push this block to the bottom for even alignment */}
-      <div className="mt-auto">
-        <div className="flex justify-between items-center">
+      <div className="mt-0">
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 sm:gap-0">
           <p className="text-sm sm:text-base font-semibold text-gray-900">
             {isDiscounted ? (
               <span className="line-through text-zinc-500">
@@ -142,8 +145,8 @@ export default function ProductCard({ product, discounts = [] }: ProductCardProp
             )}
           </p>
 
-          {/* Stock pill (always shown) */}
-          <div className="scale-90">
+          {/* Stock pill */}
+          <div className="scale-90 text-[10px] sm:text-xs leading-tight">
             <StockPill status={product.stockStatus} />
           </div>
         </div>

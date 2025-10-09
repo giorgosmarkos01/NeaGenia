@@ -17,11 +17,11 @@ type DocType = "receipt" | "invoice";
 export default function CheckoutPage() {
   const items = useSelector(selectCartItems);
   const count = useSelector(selectCount);
-
+  const [selectingBoxNow, setSelectingBoxNow] = useState(false);
   useEffect(() => {
-  // You should see an array of lines with id/slug/price/qty, etc.
-  console.log("[Checkout] items from Redux >", items);
-}, [items]);
+    // You should see an array of lines with id/slug/price/qty, etc.
+    console.log("[Checkout] items from Redux >", items);
+  }, [items]);
 
   const [docType, setDocType] = useState<DocType>("receipt");
   const [agree, setAgree] = useState(false);
@@ -58,10 +58,15 @@ export default function CheckoutPage() {
   const [showCoupon, setShowCoupon] = useState(false);
 
   // itemId -> finalLineTotal (overlay from the server after coupon)
-  const [couponLineTotals, setCouponLineTotals] = useState<Record<string, number>>({});
+  const [couponLineTotals, setCouponLineTotals] = useState<
+    Record<string, number>
+  >({});
 
   // snapshot of before/after subtotals returned by API
-  const [couponSummary, setCouponSummary] = useState<{ subtotalBefore: number; subtotalAfter: number } | null>(null);
+  const [couponSummary, setCouponSummary] = useState<{
+    subtotalBefore: number;
+    subtotalAfter: number;
+  } | null>(null);
 
   // Strictly typed lists
   const greekProvinces = greekProvincesRaw as GreekRegion[];
@@ -89,14 +94,16 @@ export default function CheckoutPage() {
   const discountedSubtotal = useMemo(() => {
     return items.reduce((sum, it: any) => {
       const base = Number(it?.price) * Number(it?.qty);
-      const overlay = couponLineTotals[it.productId];  // <-- use productId
+      const overlay = couponLineTotals[it.productId]; // <-- use productId
       return sum + (Number.isFinite(overlay) ? overlay : base);
     }, 0);
   }, [items, couponLineTotals]);
 
   const appliedDiscountAmount = useMemo(() => {
     if (!couponSummary) return 0;
-    const diff = Number(couponSummary.subtotalBefore) - Number(couponSummary.subtotalAfter);
+    const diff =
+      Number(couponSummary.subtotalBefore) -
+      Number(couponSummary.subtotalAfter);
     return diff > 0 ? Number(diff.toFixed(2)) : 0;
   }, [couponSummary]);
 
@@ -557,10 +564,13 @@ export default function CheckoutPage() {
                   {/* BoxNow Map */}
                   {country === "Greece" && shipping === "BoxNow" && (
                     <div className="mt-4">
-                      <BoxNowMap onSelect={setBoxNowLocker} />
+                      <BoxNowMap
+                        onSelect={(locker: any) => {
+                          setBoxNowLocker(locker);
+                        }}
+                      />
                       <div className="mt-2 text-sm text-gray-600">
-                        {boxNowLocker &&
-                        boxNowLocker.boxnowLockerAddressLine1 ? (
+                        {boxNowLocker ? (
                           <>
                             Selected: {boxNowLocker.boxnowLockerAddressLine1},{" "}
                             {boxNowLocker.boxnowLockerPostalCode}
@@ -704,7 +714,9 @@ export default function CheckoutPage() {
               {appliedDiscountAmount > 0 && (
                 <div className="flex justify-between text-sm mb-2">
                   <span className="text-gray-700">Applied Discount:</span>
-                  <span className="text-green-700">- {appliedDiscountAmount.toFixed(2)}€</span>
+                  <span className="text-green-700">
+                    - {appliedDiscountAmount.toFixed(2)}€
+                  </span>
                 </div>
               )}
 
@@ -727,13 +739,17 @@ export default function CheckoutPage() {
                 </span>
               </label>
 
-              <button
-                type="submit"
-                disabled={!agree || items.length === 0 || loading || couponApplying}
-                className="w-full rounded-md bg-blue-600 text-white py-3 font-medium hover:bg-blue-700 disabled:opacity-60 disabled:cursor-not-allowed transition"
-              >
-                {loading ? "Placing order..." : "Order Now"}
-              </button>
+              {!(!boxNowLocker && shipping === "BoxNow") && (
+                <button
+                  type="submit"
+                  disabled={
+                    !agree || items.length === 0 || loading || couponApplying
+                  }
+                  className="w-full rounded-md bg-blue-600 text-white py-3 font-medium hover:bg-blue-700 disabled:opacity-60 disabled:cursor-not-allowed transition"
+                >
+                  {loading ? "Placing order..." : "Order Now"}
+                </button>
+              )}
 
               {/* Coupon section */}
               {!showCoupon ? (
@@ -753,7 +769,9 @@ export default function CheckoutPage() {
               ) : (
                 // Expanded state: your existing coupon UI
                 <div id="coupon-panel" className="mt-4 space-y-2">
-                  <label className="block text-sm text-gray-700">Add Discount Code</label>
+                  <label className="block text-sm text-gray-700">
+                    Add Discount Code
+                  </label>
                   <div className="flex gap-2">
                     <input
                       value={coupon}
@@ -771,7 +789,7 @@ export default function CheckoutPage() {
                           const payload = {
                             coupon,
                             items: items.map((it: any) => ({
-                              itemId: it.productId,           // <-- was it.id / it.slug; use productId
+                              itemId: it.productId, // <-- was it.id / it.slug; use productId
                               unitPrice: Number(it.price),
                               qty: Number(it.qty),
                             })),
@@ -788,7 +806,9 @@ export default function CheckoutPage() {
                           if (!res.ok || !data?.ok) {
                             setCouponLineTotals({});
                             setCouponSummary(null);
-                            setCouponError(data?.error || "Coupon not applicable.");
+                            setCouponError(
+                              data?.error || "Coupon not applicable."
+                            );
                           } else {
                             const map: Record<string, number> = {};
                             for (const r of data.results as any[]) {
@@ -804,7 +824,9 @@ export default function CheckoutPage() {
                         } catch {
                           setCouponLineTotals({});
                           setCouponSummary(null);
-                          setCouponError("Could not validate coupon right now.");
+                          setCouponError(
+                            "Could not validate coupon right now."
+                          );
                         } finally {
                           setCouponApplying(false);
                         }
@@ -815,10 +837,13 @@ export default function CheckoutPage() {
                     </button>
                   </div>
 
-                  {couponError && <p className="text-sm text-red-600">{couponError}</p>}
+                  {couponError && (
+                    <p className="text-sm text-red-600">{couponError}</p>
+                  )}
                   {appliedDiscountAmount > 0 && (
                     <p className="text-sm text-green-700">
-                      Coupon applied! You saved {appliedDiscountAmount.toFixed(2)}€ on items.
+                      Coupon applied! You saved{" "}
+                      {appliedDiscountAmount.toFixed(2)}€ on items.
                     </p>
                   )}
 
