@@ -49,3 +49,6 @@ CREATE TABLE cart_item_variations (
   CONSTRAINT fk_civ_variation FOREIGN KEY (variation_id) REFERENCES item_variation(id) ON DELETE RESTRICT,
   UNIQUE KEY ux_cartitem_variation (cart_item_id, variation_id)
 );
+
+ALTER TABLE carts DROP INDEX unique_user;
+ALTER TABLE carts DROP INDEX unique_session;
