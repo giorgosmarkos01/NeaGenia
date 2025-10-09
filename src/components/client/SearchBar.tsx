@@ -27,22 +27,29 @@ export default function SearchBar() {
   useEffect(() => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
 
+    // 🔹 If empty input: clear results + schedule loader stop
     if (!q || q.trim().length < 2) {
       setResults([]);
       setOpen(false);
+
+      // stop loader after 1 second max
+      const timeout = setTimeout(() => {
+        setLoading(false);
+      }, 1000);
+
+      debounceRef.current = timeout;
       return;
     }
 
+    // 🔹 Non-empty: run search with debounce
     setLoading(true);
     debounceRef.current = setTimeout(async () => {
       try {
-        const res = await fetch(
-          `/api/search?q=${encodeURIComponent(q.trim())}`
-        );
+        const res = await fetch(`/api/search?q=${encodeURIComponent(q.trim())}`);
         const data = await res.json();
         setResults(data.items || []);
         setOpen(true);
-      } catch (e) {
+      } catch {
         setResults([]);
         setOpen(false);
       } finally {

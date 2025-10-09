@@ -1,48 +1,27 @@
-
-const path = require("path");
-
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
+    // Allow Next/Image to optimize images from these locations
     remotePatterns: [
-      // DEV
+      // DEV: if you ever use absolute http://localhost:3000/uploads/... in dev
       {
         protocol: "http",
         hostname: "localhost",
         port: "3000",
         pathname: "/uploads/**",
       },
-      // PROD
+      // PROD: direct files from your server
       {
         protocol: "https",
         hostname: "svkroboticstore.com",
-        port: "",
-        pathname: "/**",
+        pathname: "/uploads/**",
       },
       {
         protocol: "https",
         hostname: "www.svkroboticstore.com",
-        port: "",
-        pathname: "/**",
+        pathname: "/uploads/**",
       },
     ],
-  },
-
-  async rewrites() {
-    // In prod, proxy /uploads/* → CDN
-    if (process.env.NODE_ENV === "production") {
-      return [
-        {
-          source: "/uploads/:path*",
-          destination: "https://svkroboticstore.com/uploads/:path*",
-        },
-      ];
-    }
-    return [];
-  },
-
-  turbopack: {
-    root: path.join(__dirname),
   },
 };
 
