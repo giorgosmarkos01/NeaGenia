@@ -3,6 +3,8 @@ import { z } from "zod";
 import type { RowDataPacket } from "mysql2";
 import { queryRows } from "@/lib/db";
 
+const ENABLE_AUTO_DISCOUNTS = process.env.ENABLE_AUTO_DISCOUNTS === "1";
+
 const ACTIVE_WINDOW = `
   d.active = 1
   AND (d.starts_at IS NULL OR d.starts_at <= NOW())
@@ -15,6 +17,11 @@ const QuerySchema = z.object({
 
 export async function GET(req: Request) {
   try {
+
+    if (!ENABLE_AUTO_DISCOUNTS) {
+      return NextResponse.json({ discounts: [] }, { status: 200 });
+    }
+    
     const { searchParams } = new URL(req.url);
     const parse = QuerySchema.safeParse({
       categoryId: searchParams.get("categoryId"),

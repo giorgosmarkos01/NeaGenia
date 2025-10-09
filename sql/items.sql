@@ -132,7 +132,7 @@ CREATE TABLE discount (
   -- stacking option for discounts 
   stackable BOOLEAN NOT NULL DEFAULT FALSE,
 
-  coupon_code VARCHAR(64) NULL,
+  coupon_code VARCHAR(64) UNIQUE NULL,
   max_global_uses INT NULL,
   max_user_uses INT NULL,
 
