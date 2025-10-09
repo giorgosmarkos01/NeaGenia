@@ -88,7 +88,10 @@ export default function Footer() {
               </Link>
             </li>
             <li>
-              <Link href="/privacy" className="hover:text-gray-900 transition">
+              <Link
+                href="/privacy-policy"
+                className="hover:text-gray-900 transition"
+              >
                 Privacy policy
               </Link>
             </li>
@@ -207,7 +210,12 @@ export default function Footer() {
             Shipping Partners
           </h3>
           <div className="flex flex-wrap gap-4 items-center">
-            <Image src="/shipping/elta.png" alt="ELTA" width={50} height={30} />
+            <Image
+              src="/shipping/elta_courier.png"
+              alt="ELTA"
+              width={50}
+              height={30}
+            />
             <Image
               src="/shipping/fedex.svg"
               alt="FedEx"
@@ -340,305 +348,33 @@ export default function Footer() {
         </p>
 
         <div className="flex gap-6">
-          <button
-            onClick={() => setCookiesOpen(true)}
+          <Link
+            href="/cookies-policy"
             className="text-sm text-blue-600 hover:underline"
           >
             Cookies Policy
-          </button>
-          <button
-            onClick={() => setTermsOpen(true)}
+          </Link>
+          <Link
+            href="/privacy-policy"
             className="text-sm text-blue-600 hover:underline"
           >
             Privacy Policy
-          </button>
+          </Link>
         </div>
       </div>
 
-      {/* Cookies Modal */}
-      <Modal
-        isOpen={cookiesOpen}
-        onClose={() => setCookiesOpen(false)}
-        title="Cookies Policy"
+      <Link
+        href="/cookies-policy"
+        className="text-sm text-gray-600 hover:underline"
       >
-        <p>
-          <strong>Last updated:</strong> October 15, 2024
-        </p>
-
-        <p>
-          This Cookies Policy explains how <strong>SVK Robotics</strong>{" "}
-          (&quot;we&quot;, &quot;our&quot;, &quot;us&quot;) uses cookies and
-          similar technologies when you visit our website and e-shop. It also
-          explains your choices regarding cookies.
-        </p>
-
-        <p>
-          By continuing to browse or use our website, you agree to the use of
-          cookies as described in this policy, unless you adjust your browser or
-          cookie settings.
-        </p>
-
-        <h3 className="font-semibold text-gray-900 mt-4">
-          1. What Are Cookies?
-        </h3>
-        <p>
-          Cookies are small text files placed on your device when you visit a
-          website. They are widely used to make websites work, improve
-          efficiency, and provide reporting information. We also use local
-          storage and session storage for similar purposes.
-        </p>
-
-        <h3 className="font-semibold text-gray-900 mt-4">
-          2. Types of Cookies We Use
-        </h3>
-        <ul className="list-disc list-inside space-y-2">
-          <li>
-            <strong>Essential Cookies:</strong> Enable basic site functionality
-            (shopping cart, secure login). Example: Clerk authentication
-            cookies. <em>Cannot be opted out.</em>
-          </li>
-          <li>
-            <strong>Performance &amp; Analytics:</strong> Track site usage (e.g.
-            Google Analytics). <em>Optional.</em>
-          </li>
-          <li>
-            <strong>Functionality:</strong> Remember preferences (e.g. language,
-            currency). <em>Optional.</em>
-          </li>
-          <li>
-            <strong>Marketing &amp; Third-Party:</strong> For ads and campaign
-            tracking (e.g. Google Ads, Meta). <em>Optional.</em>
-          </li>
-        </ul>
-
-        <h3 className="font-semibold text-gray-900 mt-4">
-          3. Third-Party Cookies
-        </h3>
-        <p>
-          Some cookies are set by third parties such as authentication or
-          analytics providers:
-        </p>
-        <ul className="list-disc list-inside space-y-1">
-          <li>
-            Clerk – session and login cookies.{" "}
-            <a
-              href="https://clerk.com/legal/privacy"
-              target="_blank"
-              className="text-blue-600 underline"
-            >
-              Privacy Policy
-            </a>
-          </li>
-          <li>
-            Google Analytics – traffic and usage tracking.{" "}
-            <a
-              href="https://policies.google.com/privacy"
-              target="_blank"
-              className="text-blue-600 underline"
-            >
-              Privacy Policy
-            </a>
-          </li>
-        </ul>
-
-        <h3 className="font-semibold text-gray-900 mt-4">
-          4. Your Choices About Cookies
-        </h3>
-        <ul className="list-disc list-inside space-y-1">
-          <li>Manage cookies in your browser settings.</li>
-          <li>Use cookie banner/preferences if available on our site.</li>
-          <li>
-            Opt out of Google Analytics with{" "}
-            <a
-              href="https://tools.google.com/dlpage/gaoptout"
-              target="_blank"
-              className="text-blue-600 underline"
-            >
-              Google Opt-out Add-on
-            </a>
-            .
-          </li>
-        </ul>
-
-        <h3 className="font-semibold text-gray-900 mt-4">
-          5. Updates to This Policy
-        </h3>
-        <p>
-          We may update this Cookies Policy to reflect changes in technology,
-          legal requirements, or business practices. Updates will be posted here
-          with a revised &quot;Last updated&quot; date.
-        </p>
-
-        <h3 className="font-semibold text-gray-900 mt-4">6. Contact Us</h3>
-        <p>
-          📧 Email:{" "}
-          <a
-            href="mailto:info@svkrobotics.com"
-            className="text-blue-600 underline"
-          >
-            info@svkrobotics.com
-          </a>
-          <br />
-          📍 Address: Giamalaki 25, 71202, Heraklion, Crete, Greece
-        </p>
-      </Modal>
-
-      {/* Privacy Modal */}
-      <Modal
-        isOpen={termsOpen}
-        onClose={() => setTermsOpen(false)}
-        title="Privacy Policy"
+        Cookies Policy
+      </Link>
+      <Link
+        href="/privacy-policy"
+        className="text-sm text-gray-600 hover:underline"
       >
-        <p>
-          <strong>Last updated:</strong> October 15, 2024
-        </p>
-
-        <p>
-          <strong>SVK Robotics</strong> (&quot;we&quot;, &quot;our&quot;,
-          &quot;us&quot;) respects your privacy and is committed to protecting
-          your personal data. This privacy policy explains how we handle your
-          personal information, your privacy rights, and how the law protects
-          you, particularly under GDPR.
-        </p>
-
-        <h3 className="font-semibold text-gray-900">
-          1. Important Information and Who We Are
-        </h3>
-        <p>
-          SVK Robotics specializes in robotics and mechatronics solutions, as
-          well as selling products through our e-shop. This privacy policy
-          applies to the use of our website and e-shop.
-        </p>
-        <p>
-          <strong>Contact Information:</strong>
-          <br />
-          📧 Email:{" "}
-          <a
-            href="mailto:info@svkrobotics.com"
-            className="text-blue-600 underline"
-          >
-            info@svkrobotics.com
-          </a>
-          <br />
-          📍 Address: Ραδαμάνθους 18, Heraklion, Crete, Greece
-        </p>
-
-        <h3 className="font-semibold text-gray-900">2. What Data We Collect</h3>
-        <ul className="list-disc list-inside space-y-1">
-          <li>
-            <strong>Identity Data:</strong> Name, username, title, gender.
-          </li>
-          <li>
-            <strong>Contact Data:</strong> Billing, delivery address, email,
-            phone.
-          </li>
-          <li>
-            <strong>Financial Data:</strong> Card details (via secure
-            processors).
-          </li>
-          <li>
-            <strong>Transaction Data:</strong> Payments and purchases.
-          </li>
-          <li>
-            <strong>Technical Data:</strong> IP, browser, timezone, device info.
-          </li>
-          <li>
-            <strong>Profile Data:</strong> Orders, preferences, feedback.
-          </li>
-          <li>
-            <strong>Usage Data:</strong> Website interactions.
-          </li>
-          <li>
-            <strong>Marketing Data:</strong> Preferences for communication.
-          </li>
-        </ul>
-
-        <h3 className="font-semibold text-gray-900">3. How We Collect Data</h3>
-        <ul className="list-disc list-inside space-y-1">
-          <li>
-            <strong>Direct:</strong> Forms, account creation, checkout, emails.
-          </li>
-          <li>
-            <strong>Automated:</strong> Cookies, server logs, analytics.
-          </li>
-          <li>
-            <strong>Third Parties:</strong> Analytics, ad networks, search info.
-          </li>
-        </ul>
-
-        <h3 className="font-semibold text-gray-900">4. How We Use Data</h3>
-        <ul className="list-disc list-inside space-y-1">
-          <li>To perform contracts (e.g. process orders).</li>
-          <li>For legitimate interests (marketing, analytics).</li>
-          <li>To comply with legal obligations.</li>
-        </ul>
-        <p>
-          <strong>Marketing:</strong> You may receive offers if you’ve purchased
-          from us or signed up for promotions.
-        </p>
-
-        <h3 className="font-semibold text-gray-900">5. Disclosures of Data</h3>
-        <p>
-          We may share data with service providers, legal advisors, payment
-          processors, marketing platforms, or authorities.
-        </p>
-
-        <h3 className="font-semibold text-gray-900">
-          6. International Transfers
-        </h3>
-        <p>
-          We may transfer data outside the EEA under Standard Contractual
-          Clauses.
-        </p>
-
-        <h3 className="font-semibold text-gray-900">7. Data Security</h3>
-        <p>
-          We use safeguards to prevent unauthorized access, and notify
-          regulators/users if a breach occurs.
-        </p>
-
-        <h3 className="font-semibold text-gray-900">8. Data Retention</h3>
-        <p>
-          We retain data only as long as necessary for business or legal needs.
-        </p>
-
-        <h3 className="font-semibold text-gray-900">9. Your Rights (GDPR)</h3>
-        <ul className="list-disc list-inside space-y-1">
-          <li>Access, correct, or delete your data.</li>
-          <li>Object to processing or restrict usage.</li>
-          <li>Request data transfer.</li>
-          <li>Withdraw consent at any time.</li>
-        </ul>
-        <p>
-          Contact us at{" "}
-          <a
-            href="mailto:info@svkrobotics.com"
-            className="text-blue-600 underline"
-          >
-            info@svkrobotics.com
-          </a>{" "}
-          to exercise these rights.
-        </p>
-
-        <h3 className="font-semibold text-gray-900">10. Changes</h3>
-        <p>
-          We may update this Privacy Policy from time to time. Please review
-          periodically.
-        </p>
-
-        <h3 className="font-semibold text-gray-900">11. Contact Details</h3>
-        <p>
-          📧 Email:{" "}
-          <a
-            href="mailto:info@svkrobotics.com"
-            className="text-blue-600 underline"
-          >
-            info@svkrobotics.com
-          </a>
-          <br />
-          📍 Address: Ραδαμάνθους 18, Heraklion, Crete, Greece
-        </p>
-      </Modal>
+        Privacy Policy
+      </Link>
     </footer>
   );
 }

@@ -2,8 +2,9 @@ import { Suspense } from "react";
 import Navbar from "@/components/client/Navbar";
 import Footer from "@/components/client/Footer";
 import HeroBanner from "@/components/client/HeroBanner";
-import ProductGrid, { ProductGridSkeleton } from "@/components/client/ProductGrid";
-
+import ProductGrid, {
+  ProductGridSkeleton,
+} from "@/components/client/ProductGrid";
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 

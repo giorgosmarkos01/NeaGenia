@@ -4,6 +4,8 @@ import "./globals.css";
 import ReduxProvider from "@/providers/ReduxProvider";
 import CartLoader from "@/components/client/CartLoader";
 import { ClerkProvider } from "@clerk/nextjs";
+import CookieConsent from "@/components/client/CookieConsent";
+
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -34,6 +36,7 @@ export default function RootLayout({
           <ReduxProvider>
             <CartLoader />
             {children}
+            <CookieConsent />
           </ReduxProvider>
         </body>
       </html>
