@@ -70,6 +70,21 @@ export default function CheckoutPage() {
   // BoxNow locker
   const [boxNowLocker, setBoxNowLocker] = useState<any>(null);
 
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let value = e.target.value;
+
+    // Επιτρέπεται μόνο + στην αρχή και μετά αριθμοί
+    value = value.replace(/[^\d+]/g, "");
+
+    // Αν δεν είναι το πρώτο χαρακτήρας το + → αφαίρεσέ το
+    if (value.indexOf("+") > 0) {
+      value = value.replace(/\+/g, "");
+    }
+
+    // Αν δεν έχει αρκετά ψηφία, απλά κρατάμε όσα έχει
+    setPhone(value);
+  };
+
   // -------- Discount-aware subtotal (use server snapshot if present) --------
   const discountedSubtotal = useMemo(() => {
     return items.reduce((sum, it: any) => {
@@ -96,7 +111,9 @@ export default function CheckoutPage() {
 
   // Province options
   const provinceOptions = useMemo(() => {
-    const arr = (greekProvinces as GreekRegion[]).map((r) => r.region).filter(Boolean);
+    const arr = (greekProvinces as GreekRegion[])
+      .map((r) => r.region)
+      .filter(Boolean);
     return Array.from(new Set(arr)).sort((a, b) =>
       a.localeCompare(b, "el", { sensitivity: "base" })
     );
@@ -106,7 +123,9 @@ export default function CheckoutPage() {
   const countryOptions = useMemo(() => {
     const names = countries.map((c) => c.name).filter(Boolean);
     const unique = Array.from(new Set(names));
-    const sorted = unique.sort((a, b) => a.localeCompare(b, "en", { sensitivity: "base" }));
+    const sorted = unique.sort((a, b) =>
+      a.localeCompare(b, "en", { sensitivity: "base" })
+    );
     const pinned = "Greece";
     return [pinned, ...sorted.filter((n) => n !== pinned)];
   }, [countries]);
@@ -334,7 +353,10 @@ export default function CheckoutPage() {
             </Link>
           </div>
         ) : (
-          <form onSubmit={onSubmit} className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <form
+            onSubmit={onSubmit}
+            className="grid grid-cols-1 md:grid-cols-3 gap-6"
+          >
             {/* LEFT */}
             <div className="md:col-span-2 space-y-6">
               <section className="rounded-xl border bg-white p-6 shadow-sm">
@@ -392,7 +414,7 @@ export default function CheckoutPage() {
                       required
                       type="tel"
                       value={phone_number}
-                      onChange={(e) => setPhone(e.target.value)}
+                      onChange={handlePhoneChange}
                       className="w-full border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
@@ -410,7 +432,9 @@ export default function CheckoutPage() {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm text-gray-700 mb-1">Country*</label>
+                    <label className="block text-sm text-gray-700 mb-1">
+                      Country*
+                    </label>
                     <select
                       required
                       value={country}
@@ -437,7 +461,9 @@ export default function CheckoutPage() {
                   </div>
 
                   <div>
-                    <label className="block text-sm text-gray-700 mb-1">City*</label>
+                    <label className="block text-sm text-gray-700 mb-1">
+                      City*
+                    </label>
                     <input
                       required
                       value={city}
@@ -446,7 +472,9 @@ export default function CheckoutPage() {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm text-gray-700 mb-1">Province*</label>
+                    <label className="block text-sm text-gray-700 mb-1">
+                      Province*
+                    </label>
                     <select
                       required
                       value={province}
@@ -463,7 +491,9 @@ export default function CheckoutPage() {
                   </div>
 
                   <div>
-                    <label className="block text-sm text-gray-700 mb-1">ZIP Code*</label>
+                    <label className="block text-sm text-gray-700 mb-1">
+                      ZIP Code*
+                    </label>
                     <input
                       required
                       value={zip}
@@ -482,7 +512,9 @@ export default function CheckoutPage() {
                       <label
                         key={s}
                         className={`flex items-center gap-3 rounded-xl border p-4 cursor-pointer transition ${
-                          shipping === s ? "border-blue-400 shadow-sm" : "border-gray-300"
+                          shipping === s
+                            ? "border-blue-400 shadow-sm"
+                            : "border-gray-300"
                         }`}
                       >
                         <input
@@ -501,17 +533,19 @@ export default function CheckoutPage() {
                                 {shipCalcLoading ? (
                                   <span>calculating…</span>
                                 ) : shipCalcError ? (
-                                  <span title={shipCalcError}>{shippingFee.toFixed(2)}€</span>
+                                  <span title={shipCalcError}>
+                                    {shippingFee.toFixed(2)}€
+                                  </span>
                                 ) : (
                                   <span>{shippingFee.toFixed(2)}€</span>
                                 )}
                               </>
-                                ) : s.toUpperCase() === "BOXNOW" ? (
-                                  <>Delivery Cost: 3.00€</>
-                                ) : s.toUpperCase() === "FEDEX" ? (
-                                  <>Delivery Cost: 10.00€</>
-                                ) : (
-                                  <>Delivery Cost: 0.00€</>
+                            ) : s.toUpperCase() === "BOXNOW" ? (
+                              <>Delivery Cost: 3.00€</>
+                            ) : s.toUpperCase() === "FEDEX" ? (
+                              <>Delivery Cost: 10.00€</>
+                            ) : (
+                              <>Delivery Cost: 0.00€</>
                             )}
                           </div>
                         </div>
@@ -524,7 +558,8 @@ export default function CheckoutPage() {
                     <div className="mt-4">
                       <BoxNowMap onSelect={setBoxNowLocker} />
                       <div className="mt-2 text-sm text-gray-600">
-                        {boxNowLocker && boxNowLocker.boxnowLockerAddressLine1 ? (
+                        {boxNowLocker &&
+                        boxNowLocker.boxnowLockerAddressLine1 ? (
                           <>
                             Selected: {boxNowLocker.boxnowLockerAddressLine1},{" "}
                             {boxNowLocker.boxnowLockerPostalCode}
@@ -541,10 +576,14 @@ export default function CheckoutPage() {
               {/* Billing (only if Invoice) */}
               {docType === "invoice" && (
                 <section className="rounded-xl border bg-white p-6 shadow-sm">
-                  <h2 className="text-xl font-semibold mb-4">Billing Information (Invoice)</h2>
+                  <h2 className="text-xl font-semibold mb-4">
+                    Billing Information (Invoice)
+                  </h2>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm text-gray-700 mb-1">Company Name*</label>
+                      <label className="block text-sm text-gray-700 mb-1">
+                        Company Name*
+                      </label>
                       <input
                         required
                         value={company_name}
@@ -553,7 +592,9 @@ export default function CheckoutPage() {
                       />
                     </div>
                     <div>
-                      <label className="block text-sm text-gray-700 mb-1">VAT Number*</label>
+                      <label className="block text-sm text-gray-700 mb-1">
+                        VAT Number*
+                      </label>
                       <input
                         required
                         value={vat_number}
@@ -563,7 +604,9 @@ export default function CheckoutPage() {
                     </div>
 
                     <div className="md:col-span-2">
-                      <label className="block text-sm text-gray-700 mb-1">Company Address*</label>
+                      <label className="block text-sm text-gray-700 mb-1">
+                        Company Address*
+                      </label>
                       <input
                         required
                         value={company_address}
@@ -573,7 +616,9 @@ export default function CheckoutPage() {
                     </div>
 
                     <div>
-                      <label className="block text-sm text-gray-700 mb-1">Company City*</label>
+                      <label className="block text-sm text-gray-700 mb-1">
+                        Company City*
+                      </label>
                       <input
                         required
                         value={company_city}
@@ -582,7 +627,9 @@ export default function CheckoutPage() {
                       />
                     </div>
                     <div>
-                      <label className="block text-sm text-gray-700 mb-1">Company ZIP*</label>
+                      <label className="block text-sm text-gray-700 mb-1">
+                        Company ZIP*
+                      </label>
                       <input
                         required
                         value={company_zip}
@@ -592,7 +639,9 @@ export default function CheckoutPage() {
                     </div>
 
                     <div>
-                      <label className="block text-sm text-gray-700 mb-1">Profession / Occupation*</label>
+                      <label className="block text-sm text-gray-700 mb-1">
+                        Profession / Occupation*
+                      </label>
                       <input
                         required
                         value={occupation}
@@ -601,7 +650,9 @@ export default function CheckoutPage() {
                       />
                     </div>
                     <div>
-                      <label className="block text-sm text-gray-700 mb-1">Tax Office*</label>
+                      <label className="block text-sm text-gray-700 mb-1">
+                        Tax Office*
+                      </label>
                       <input
                         required
                         value={tax_office}
@@ -633,7 +684,9 @@ export default function CheckoutPage() {
                 <div className="flex justify-between">
                   <span>Shipping:</span>
                   <span>
-                    {shipCalcLoading ? "calculating…" : `${shippingFee.toFixed(2)}€`}
+                    {shipCalcLoading
+                      ? "calculating…"
+                      : `${shippingFee.toFixed(2)}€`}
                   </span>
                 </div>
               </div>
@@ -642,7 +695,9 @@ export default function CheckoutPage() {
 
               <div className="flex justify-between text-lg font-bold mb-4">
                 <span>Total Amount:</span>
-                <span>{(Number(discountedSubtotal + shippingFee).toFixed(2))}€</span>
+                <span>
+                  {Number(discountedSubtotal + shippingFee).toFixed(2)}€
+                </span>
               </div>
 
               {appliedDiscountAmount > 0 && (
@@ -661,7 +716,10 @@ export default function CheckoutPage() {
                 />
                 <span>
                   I have read and agree to the{" "}
-                  <Link href="/terms" className="text-blue-600 hover:underline">
+                  <Link
+                    href="/terms-of-use"
+                    className="text-blue-600 hover:underline"
+                  >
                     Terms of Use
                   </Link>
                   .

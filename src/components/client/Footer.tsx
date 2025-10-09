@@ -360,6 +360,12 @@ export default function Footer() {
           >
             Privacy Policy
           </Link>
+          <Link
+            href="/terms-of-use"
+            className="text-sm text-blue-600 hover:underline"
+          >
+            Terms of Use
+          </Link>
         </div>
       </div>
 

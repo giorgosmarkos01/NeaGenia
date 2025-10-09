@@ -3,12 +3,10 @@ export const dynamic = "force-dynamic";
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { v4 as uuidv4 } from "uuid";
-import { auth } from "@clerk/nextjs/server";
-import { cookies } from "next/headers";
 import { createPaymentOrder } from "@/lib/viva/createPaymentOrder";
 import { computeOrderTotals } from "@/helpers/itemPricing";
 import { applyCouponServerSide } from "@/helpers/couponApply";
-
+import { getOrCreateCartBySession } from "@/lib/cartSession";
 type ShipCode = "ELTA" | "FEDEX" | "BOXNOW";
 
 function normShipping(s?: string): ShipCode {
@@ -80,7 +78,10 @@ async function validateShippingCostOnServer(opts: {
     }
 
     const base = new URL(req.url);
-    const calcUrl = new URL("/api/delivery/calculate", `${base.origin}`).toString();
+    const calcUrl = new URL(
+      "/api/delivery/calculate",
+      `${base.origin}`
+    ).toString();
 
     const payload = {
       city: address.city,
@@ -148,10 +149,16 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Invalid docType" }, { status: 400 });
   }
   if (!customer_name || !email || !phone_number) {
-    return NextResponse.json({ error: "Missing customer info" }, { status: 400 });
+    return NextResponse.json(
+      { error: "Missing customer info" },
+      { status: 400 }
+    );
   }
   if (!address || !city || !province || !zip || !country) {
-    return NextResponse.json({ error: "Missing delivery info" }, { status: 400 });
+    return NextResponse.json(
+      { error: "Missing delivery info" },
+      { status: 400 }
+    );
   }
   if (docType === "invoice") {
     if (
@@ -163,14 +170,18 @@ export async function POST(req: Request) {
       !occupation ||
       !tax_office
     ) {
-      return NextResponse.json({ error: "Missing invoice info" }, { status: 400 });
+      return NextResponse.json(
+        { error: "Missing invoice info" },
+        { status: 400 }
+      );
     }
   }
 
-  const { cartId, userId } = await getCartIdForCurrentUser();
-  const ship = normShipping(shipping);
-
-  // 1) Authoritative server-side line pricing (pre-discount)
+  const { cartId, userId } = await getOrCreateCartBySession(null);
+  const ship = normShipping(body.shipping);
+  // Authoritative server-side line pricing (discounts, variations, etc.)
+  // NOTE: computeOrderTotals currently has a static shipping rule internally;
+  // we'll ignore its shippingCost and recompute below.
   const { lines, subtotal } = await computeOrderTotals(cartId, ship);
   if (lines.length === 0) {
     return NextResponse.json({ error: "Cart is empty" }, { status: 400 });
@@ -242,7 +253,15 @@ export async function POST(req: Request) {
         `INSERT INTO order_items
            (order_id, customer_name, item_name, item_product_code, item_variation_name, quantity, price)
          VALUES (?, ?, ?, ?, ?, ?, ?)`,
-        [order_id, customer_name, l.name, null, variationName, l.qty, l.unitPrice]
+        [
+          order_id,
+          customer_name,
+          l.name,
+          null,
+          variationName,
+          l.qty,
+          l.unitPrice,
+        ]
       );
     }
 
@@ -275,6 +294,16 @@ export async function POST(req: Request) {
         `INSERT INTO invoice_details
            (order_id, company_name, company_address, company_city, company_zip, vat_number, occupation, tax_office)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+        [
+          order_id,
+          company_name,
+          company_address,
+          company_city,
+          company_zip,
+          vat_number,
+          occupation,
+          tax_office,
+        ]
         [
           order_id,
           company_name,
@@ -326,6 +355,9 @@ export async function POST(req: Request) {
       await db.query("ROLLBACK");
     } catch {}
     console.error("[orders] create error:", e);
-    return NextResponse.json({ error: "Failed to create order" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Failed to create order" },
+      { status: 500 }
+    );
   }
 }
