@@ -223,7 +223,7 @@ export default function Footer() {
               height={30}
             />
             <Image
-              src="/shipping/boxnow.jpg"
+              src="/shipping/boxnow.png"
               alt="BoxNow"
               width={50}
               height={30}
