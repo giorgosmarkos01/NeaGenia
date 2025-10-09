@@ -29,25 +29,25 @@ export default function Navbar() {
       )
     ) ?? 0;
 
-  useEffect(() => {
-    let cancelled = false;
+  // useEffect(() => {
+  //   let cancelled = false;
 
-    (async () => {
-      try {
-        const cartRes = await fetch("/api/cart/items", { cache: "no-store" });
-        if (cartRes.ok) {
-          const cartData = await cartRes.json();
-          if (!cancelled) dispatch(setCart(cartData.items || []));
-        }
-      } catch {
-        // ignore
-      }
-    })();
+  //   (async () => {
+  //     try {
+  //       const cartRes = await fetch("/api/cart/items", { cache: "no-store" });
+  //       if (cartRes.ok) {
+  //         const cartData = await cartRes.json();
+  //         if (!cancelled) dispatch(setCart(cartData.items || []));
+  //       }
+  //     } catch {
+  //       // ignore
+  //     }
+  //   })();
 
-    return () => {
-      cancelled = true;
-    };
-  }, [isSignedIn, dispatch]);
+  //   return () => {
+  //     cancelled = true;
+  //   };
+  // }, [isSignedIn, dispatch]);
 
   return (
     <header className="sticky top-0 z-40 w-full border-b bg-white">
@@ -89,9 +89,7 @@ export default function Navbar() {
               href="/"
               className={cn(
                 "text-sm hover:text-blue-600 transition",
-                pathname === "/"
-                  ? "text-blue-600 font-medium"
-                  : "text-zinc-700"
+                pathname === "/" ? "text-blue-600 font-medium" : "text-zinc-700"
               )}
             >
               Home

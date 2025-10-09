@@ -26,7 +26,9 @@ function expireAt(days = CART_TTL_DAYS) {
 async function createGuestCart(sessionToken: string): Promise<string> {
   await queryRows(
     `INSERT INTO carts (session_token, total_price, expires_at, last_access_at)
-     VALUES (?, 0.00, DATE_ADD(NOW(), INTERVAL ? DAY), NOW())`,
+     VALUES (?, 0.00, DATE_ADD(NOW(), INTERVAL ? DAY), NOW())
+     ON DUPLICATE KEY UPDATE last_access_at = VALUES(last_access_at),
+                             expires_at = VALUES(expires_at)`,
     [sessionToken, CART_TTL_DAYS]
   );
 
@@ -34,18 +36,16 @@ async function createGuestCart(sessionToken: string): Promise<string> {
     `SELECT id FROM carts WHERE session_token = ? LIMIT 1`,
     [sessionToken]
   );
-  const row = rows[0];
-
-  if (!row?.id) {
-    throw new Error("Failed to create guest cart: no row returned after insert.");
-  }
-  return row.id;
+  return rows[0].id;
 }
 
+// ✅ Create user cart (idempotent)
 async function createUserCart(userId: string): Promise<string> {
   await queryRows(
     `INSERT INTO carts (user_id, total_price, expires_at, last_access_at)
-     VALUES (?, 0.00, DATE_ADD(NOW(), INTERVAL ? DAY), NOW())`,
+     VALUES (?, 0.00, DATE_ADD(NOW(), INTERVAL ? DAY), NOW())
+     ON DUPLICATE KEY UPDATE last_access_at = VALUES(last_access_at),
+                             expires_at = VALUES(expires_at)`,
     [userId, CART_TTL_DAYS]
   );
 
@@ -53,14 +53,8 @@ async function createUserCart(userId: string): Promise<string> {
     `SELECT id FROM carts WHERE user_id = ? LIMIT 1`,
     [userId]
   );
-  const row = rows[0];
-
-  if (!row?.id) {
-    throw new Error("Failed to create user cart: no row returned after insert.");
-  }
-  return row.id;
+  return rows[0].id;
 }
-
 /**
  * Merge a guest cart (by cookie) into the signed-in user's cart.
  * - Moves/combines cart_items by item_id
@@ -159,7 +153,7 @@ export async function mergeGuestCartIntoUser(userId: string) {
  */
 export async function getOrCreateCartBySession(_hint: null) {
   const { userId } = await auth();
-  const cookieStore = await cookies();  
+  const cookieStore = await cookies();
 
   if (userId) {
     // Merge any leftover guest cart into the user's cart
@@ -238,5 +232,9 @@ export async function getOrCreateCartBySession(_hint: null) {
     expires: expireAt(),
   });
 
-  return { cartId: newCartId, userId: null as string | null, sessionToken: token };
+  return {
+    cartId: newCartId,
+    userId: null as string | null,
+    sessionToken: token,
+  };
 }

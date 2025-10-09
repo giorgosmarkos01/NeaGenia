@@ -1,42 +1,15 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { v4 as uuidv4 } from "uuid";
-import { auth } from "@clerk/nextjs/server";
-import { cookies } from "next/headers";
 import { createPaymentOrder } from "@/lib/viva/createPaymentOrder";
 import { computeOrderTotals } from "@/helpers/itemPricing"; // authoritative line pricing
-
+import { getOrCreateCartBySession } from "@/lib/cartSession";
 type ShipCode = "ELTA" | "FEDEX" | "BOXNOW";
 
 function normShipping(s?: string): ShipCode {
   const v = (s || "").toUpperCase();
   if (v === "ELTA" || v === "FEDEX" || v === "BOXNOW") return v as ShipCode;
   return "ELTA";
-}
-
-async function getCartIdForCurrentUser() {
-  const { userId } = await auth();
-  const cookieStore = await cookies();
-  const cookieCart = cookieStore.get("cartId")?.value;
-
-  if (userId) {
-    const [[row]]: any = await db.query(
-      `SELECT id FROM carts WHERE user_id = ? LIMIT 1`,
-      [userId]
-    );
-    if (row?.id) return { cartId: row.id, userId };
-
-    const newId = uuidv4();
-    // minimal insert; other columns (expires_at, etc.) are optional
-    await db.query(`INSERT INTO carts (id, user_id) VALUES (?, ?)`, [newId, userId]);
-    return { cartId: newId, userId };
-  }
-
-  if (cookieCart) return { cartId: cookieCart, userId: null };
-
-  const newId = uuidv4();
-  await db.query(`INSERT INTO carts (id) VALUES (?)`, [newId]);
-  return { cartId: newId, userId: null };
 }
 
 /**
@@ -54,13 +27,13 @@ async function validateShippingCostOnServer(opts: {
   const { req, ship, address, lines } = opts;
 
   if (ship === "BOXNOW") return 3.0; // <-- fixed per your requirement
-  if (ship === "FEDEX") return 0.0;  // change as needed
+  if (ship === "FEDEX") return 0.0; // change as needed
 
   if (ship === "ELTA") {
     // Fetch item weights to pass to the calculator (expects grams)
     if (!lines.length) return 4.35;
 
-    const ids = lines.map(l => l.productId);
+    const ids = lines.map((l) => l.productId);
     const placeholders = ids.map(() => "?").join(",");
     const [wrows]: any[] = await db.query(
       `SELECT id, weight FROM item WHERE id IN (${placeholders})`,
@@ -73,7 +46,10 @@ async function validateShippingCostOnServer(opts: {
 
     // Build payload for internal API using absolute URL derived from incoming req
     const base = new URL(req.url);
-    const calcUrl = new URL("/api/delivery/calculate", `${base.origin}`).toString();
+    const calcUrl = new URL(
+      "/api/delivery/calculate",
+      `${base.origin}`
+    ).toString();
 
     const payload = {
       city: address.city,
@@ -81,7 +57,7 @@ async function validateShippingCostOnServer(opts: {
       zip: address.zip,
       country: address.country,
       shippingOption: "ELTA",
-      items: lines.map(l => ({
+      items: lines.map((l) => ({
         product: { weight: weightById.get(l.productId) ?? 0 },
         quantity: l.qty,
       })),
@@ -141,20 +117,36 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Invalid docType" }, { status: 400 });
   }
   if (!customer_name || !email || !phone_number) {
-    return NextResponse.json({ error: "Missing customer info" }, { status: 400 });
+    return NextResponse.json(
+      { error: "Missing customer info" },
+      { status: 400 }
+    );
   }
   if (!address || !city || !province || !zip || !country) {
-    return NextResponse.json({ error: "Missing delivery info" }, { status: 400 });
+    return NextResponse.json(
+      { error: "Missing delivery info" },
+      { status: 400 }
+    );
   }
   if (docType === "invoice") {
-    if (!company_name || !vat_number || !company_address || !company_city || !company_zip || !occupation || !tax_office) {
-      return NextResponse.json({ error: "Missing invoice info" }, { status: 400 });
+    if (
+      !company_name ||
+      !vat_number ||
+      !company_address ||
+      !company_city ||
+      !company_zip ||
+      !occupation ||
+      !tax_office
+    ) {
+      return NextResponse.json(
+        { error: "Missing invoice info" },
+        { status: 400 }
+      );
     }
   }
 
-  const { cartId, userId } = await getCartIdForCurrentUser();
-  const ship = normShipping(shipping);
-
+  const { cartId, userId } = await getOrCreateCartBySession(null);
+  const ship = normShipping(body.shipping);
   // Authoritative server-side line pricing (discounts, variations, etc.)
   // NOTE: computeOrderTotals currently has a static shipping rule internally;
   // we'll ignore its shippingCost and recompute below.
@@ -164,7 +156,7 @@ export async function POST(req: Request) {
   }
 
   // Build a light list for shipping calc (productId + qty)
-  const forShip = lines.map(l => ({ productId: l.productId, qty: l.qty }));
+  const forShip = lines.map((l) => ({ productId: l.productId, qty: l.qty }));
 
   // ✅ Server-validated shipping
   const shippingCost = await validateShippingCostOnServer({
@@ -187,19 +179,36 @@ export async function POST(req: Request) {
       `INSERT INTO orders
         (order_id, user_id, customer_name, email, phone_number, order_type, total_amount, payment_status, orderCode)
        VALUES (?, ?, ?, ?, ?, ?, ?, 'pending', NULL)`,
-      [order_id, userId ?? null, customer_name, email, phone_number, docType, total]
+      [
+        order_id,
+        userId ?? null,
+        customer_name,
+        email,
+        phone_number,
+        docType,
+        total,
+      ]
     );
 
     // Order items
     for (const l of lines) {
-      const variationName =
-        l.variations.length ? l.variations.map(v => v.name).join(", ") : null;
+      const variationName = l.variations.length
+        ? l.variations.map((v) => v.name).join(", ")
+        : null;
 
       await db.query(
         `INSERT INTO order_items
            (order_id, customer_name, item_name, item_product_code, item_variation_name, quantity, price)
          VALUES (?, ?, ?, ?, ?, ?, ?)`,
-        [order_id, customer_name, l.name, null, variationName, l.qty, l.unitPrice]
+        [
+          order_id,
+          customer_name,
+          l.name,
+          null,
+          variationName,
+          l.qty,
+          l.unitPrice,
+        ]
       );
     }
 
@@ -217,7 +226,16 @@ export async function POST(req: Request) {
         `INSERT INTO invoice_details
            (order_id, company_name, company_address, company_city, company_zip, vat_number, occupation, tax_office)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-        [order_id, company_name, company_address, company_city, company_zip, vat_number, occupation, tax_office]
+        [
+          order_id,
+          company_name,
+          company_address,
+          company_city,
+          company_zip,
+          vat_number,
+          occupation,
+          tax_office,
+        ]
       );
     }
 
@@ -252,8 +270,13 @@ export async function POST(req: Request) {
       { status: 201 }
     );
   } catch (e) {
-    try { await db.query("ROLLBACK"); } catch {}
+    try {
+      await db.query("ROLLBACK");
+    } catch {}
     console.error("[orders] create error:", e);
-    return NextResponse.json({ error: "Failed to create order" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Failed to create order" },
+      { status: 500 }
+    );
   }
 }
