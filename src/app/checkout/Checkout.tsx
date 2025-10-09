@@ -690,7 +690,10 @@ export default function CheckoutPage() {
                 />
                 <span>
                   I have read and agree to the{" "}
-                  <Link href="/terms" className="text-blue-600 hover:underline">
+                  <Link
+                    href="/terms-of-use"
+                    className="text-blue-600 hover:underline"
+                  >
                     Terms of Use
                   </Link>
                   .
