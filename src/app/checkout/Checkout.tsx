@@ -248,6 +248,7 @@ export default function CheckoutPage() {
       zip,
       country,
       shipping,
+      coupon: coupon?.trim() || null,
       ...(shipping === "BoxNow" && boxNowLocker
         ? {
             boxnowLockerId: boxNowLocker.boxnowLockerId,
@@ -728,7 +729,7 @@ export default function CheckoutPage() {
 
               <button
                 type="submit"
-                disabled={!agree || items.length === 0 || loading}
+                disabled={!agree || items.length === 0 || loading || couponApplying}
                 className="w-full rounded-md bg-blue-600 text-white py-3 font-medium hover:bg-blue-700 disabled:opacity-60 disabled:cursor-not-allowed transition"
               >
                 {loading ? "Placing order..." : "Order Now"}

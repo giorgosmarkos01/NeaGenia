@@ -7,6 +7,8 @@ import { createPaymentOrder } from "@/lib/viva/createPaymentOrder";
 import { computeOrderTotals } from "@/helpers/itemPricing";
 import { applyCouponServerSide } from "@/helpers/couponApply";
 import { getOrCreateCartBySession } from "@/lib/cartSession";
+import { auth } from "@clerk/nextjs/server";
+import { cookies } from "next/headers";
 type ShipCode = "ELTA" | "FEDEX" | "BOXNOW";
 
 function normShipping(s?: string): ShipCode {
@@ -294,16 +296,6 @@ export async function POST(req: Request) {
         `INSERT INTO invoice_details
            (order_id, company_name, company_address, company_city, company_zip, vat_number, occupation, tax_office)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-        [
-          order_id,
-          company_name,
-          company_address,
-          company_city,
-          company_zip,
-          vat_number,
-          occupation,
-          tax_office,
-        ]
         [
           order_id,
           company_name,
