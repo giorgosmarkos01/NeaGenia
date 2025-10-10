@@ -18,8 +18,8 @@ export default function CookiesPolicyPage() {
         </p>
 
         <p className="mb-6">
-          This Cookies Policy explains how <strong>SVK Robotics</strong> ("we",
-          "our", "us") uses cookies and similar technologies when you visit our
+          This Cookies Policy explains how <strong>SVK Robotics</strong> (&quot;we&quot;,
+          &quot;our&quot;, &quot;us&quot;) uses cookies and similar technologies when you visit our
           website and e-shop. It also explains your choices regarding cookies.
         </p>
 
@@ -71,20 +71,22 @@ export default function CookiesPolicyPage() {
         </p>
         <ul className="list-disc list-inside space-y-2 mb-6">
           <li>
-            Clerk – session and login cookies.{" "}
+            Clerk – session and login cookies{" "}
             <a
               href="https://clerk.com/legal/privacy"
               target="_blank"
+              rel="noopener noreferrer"
               className="text-blue-600 underline"
             >
               Privacy Policy
             </a>
           </li>
           <li>
-            Google Analytics – traffic and usage tracking.{" "}
+            Google Analytics – traffic and usage tracking{" "}
             <a
               href="https://policies.google.com/privacy"
               target="_blank"
+              rel="noopener noreferrer"
               className="text-blue-600 underline"
             >
               Privacy Policy
@@ -103,6 +105,7 @@ export default function CookiesPolicyPage() {
             <a
               href="https://tools.google.com/dlpage/gaoptout"
               target="_blank"
+              rel="noopener noreferrer"
               className="text-blue-600 underline"
             >
               Google Opt-out Add-on
@@ -117,17 +120,14 @@ export default function CookiesPolicyPage() {
         <p className="mb-6">
           We may update this Cookies Policy to reflect changes in technology,
           legal requirements, or business practices. Updates will be posted on
-          this page with a revised "Last updated" date.
+          this page with a revised &quot;Last updated&quot; date.
         </p>
 
         <h2 className="text-2xl font-semibold mt-10 mb-4">6. Contact Us</h2>
         <div className="bg-gray-50 border-l-4 border-blue-600 p-4 rounded">
           <p>
             📧 Email:{" "}
-            <a
-              href="mailto:info@svkrobotics.com"
-              className="text-blue-600 underline"
-            >
+            <a href="mailto:info@svkrobotics.com" className="text-blue-600 underline">
               info@svkrobotics.com
             </a>
             <br />

@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import Navbar from "@/components/client/Navbar";
 import Footer from "@/components/client/Footer";
@@ -12,7 +12,7 @@ import {
   fetchCart,
   setItemAbs,
   selectCartItems,
-  selectSubtotal,   // original (pre-discount) subtotal from Redux/server
+  selectSubtotal,
   selectCartStatus,
 } from "@/store/cartSlice";
 import type { AppDispatch } from "@/store/store";
@@ -21,99 +21,87 @@ import type { Discount } from "@/types/discount";
 import { pickDiscountsForProduct } from "@/utils/discounts";
 
 const fallbackImage = "/logo.png";
-const baseUrl = "https://svkroboticstore.com";
 
-/** Fetch discounts applicable to a given itemId (should include item + category discounts for that item) */
-async function fetchDiscountsForItem(itemId: string): Promise<Discount[]> {
-  const res = await fetch(`/api/discounts/by-item?itemId=${encodeURIComponent(itemId)}`, {
-    cache: "no-store",
-  });
-  if (!res.ok) return [];
-  const data = await res.json().catch(() => ({ discounts: [] }));
-  const rows = Array.isArray(data?.discounts) ? data.discounts : [];
-  // normalize to Discount[]
-  return rows.map((d: any) => ({
-    id: Number(d.id),
-    name: String(d.name),
-    type: d.type ?? d.discount_type,
-    value: Number(d.value),
-    startsAt: d.startsAt ?? d.starts_at ?? null,
-    endsAt: d.endsAt ?? d.ends_at ?? null,
-    stackable: Boolean(d.stackable),
-    couponCode: d.couponCode ?? d.coupon_code ?? null,
-    scope: (d.scope as "item" | "category") ?? "item",
-    appliesTo:
-      d.scope === "category" && d.categoryId
-        ? { categoryId: Number(d.categoryId) }
-        : { itemId },
-  }));
-}
+// Cart item shape compatible with ProductSummary image fields
+type CartLine = {
+  productId: string;
+  name: string;
+  price: number;
+  qty: number;
+  // prefer coverImage like ProductSummary; keep imageUrl for backward-compat
+  coverImage?: string | null;
+  imageUrl?: string | null;
+  slug?: string;
+};
 
 export default function CartPage() {
   const dispatch = useDispatch<AppDispatch>();
 
-  // ✅ Authoritative cart items from Redux (server-driven)
-  const cartItems = useSelector(selectCartItems);
-  const originalSubtotal = useSelector(selectSubtotal); // not shown now, but kept if you need it
+  const cartItems = useSelector(selectCartItems) as CartLine[];
+  const originalSubtotal = useSelector(selectSubtotal);
   const status = useSelector(selectCartStatus);
   const busy = status === "loading";
 
-  // Images cache (if items omit imageUrl in Redux)
-  const [imageById, setImageById] = useState<Record<string, string>>({});
   const [checkoutVisible, setCheckoutVisible] = useState(false);
 
   // Discounts map per productId
   const [discountsMap, setDiscountsMap] = useState<Record<string, Discount[]>>({});
 
-  const upsertImages = useCallback((rows: Array<{ productId: string; imageUrl?: string | null }>) => {
-    setImageById((prev) => {
-      const next = { ...prev };
-      for (const r of rows) {
-        const raw = r.imageUrl || fallbackImage;
-        next[r.productId] = raw.startsWith("/") ? baseUrl + raw : raw;
-      }
-      return next;
+  /** Fetch discounts applicable to a given itemId */
+  async function fetchDiscountsForItem(itemId: string): Promise<Discount[]> {
+    const res = await fetch(`/api/discounts/by-item?itemId=${encodeURIComponent(itemId)}`, {
+      cache: "no-store",
     });
-  }, []);
-
-  // Keep image cache synced when items change
-  useEffect(() => {
-    if (cartItems?.length) {
-      upsertImages(cartItems as unknown as Array<{ productId: string; imageUrl?: string | null }>);
-    }
-  }, [cartItems, upsertImages]);
+    if (!res.ok) return [];
+    const data = await res.json().catch(() => ({ discounts: [] }));
+    const rows = Array.isArray(data?.discounts) ? data.discounts : [];
+    return rows.map((d: any) => ({
+      id: Number(d.id),
+      name: String(d.name),
+      type: d.type ?? d.discount_type,
+      value: Number(d.value),
+      startsAt: d.startsAt ?? d.starts_at ?? null,
+      endsAt: d.endsAt ?? d.ends_at ?? null,
+      stackable: Boolean(d.stackable),
+      couponCode: d.couponCode ?? d.coupon_code ?? null,
+      scope: (d.scope as "item" | "category") ?? "item",
+      appliesTo:
+        d.scope === "category" && d.categoryId
+          ? { categoryId: Number(d.categoryId) }
+          : { itemId: itemId },
+    }));
+  }
 
   // Initial cart snapshot from server
   useEffect(() => {
     dispatch(fetchCart());
   }, [dispatch]);
 
-  // Fetch discounts per itemId (assumes endpoint returns all applicable discounts for that item)
+  // Fetch discounts per itemId
   useEffect(() => {
     let cancelled = false;
 
     const load = async () => {
-      const ids = Array.from(new Set(cartItems.map(i => i.productId)));
+      const ids = Array.from(new Set(cartItems.map((i) => i.productId)));
       if (ids.length === 0) {
         if (!cancelled) setDiscountsMap({});
         return;
       }
 
-      // Explicitly type the tuple so arr is Discount[]
       const results: Array<[string, Discount[]]> = await Promise.all(
         ids.map(async (id): Promise<[string, Discount[]]> => {
           try {
             const d = await fetchDiscountsForItem(id);
             return [id, d];
           } catch {
-            return [id, [] as Discount[]]; // cast empty array to mutable Discount[]
+            return [id, [] as Discount[]];
           }
         })
       );
 
       if (!cancelled) {
         const map: Record<string, Discount[]> = {};
-        for (const [id, arr] of results) map[id] = arr; // arr is Discount[] now
+        for (const [id, arr] of results) map[id] = arr;
         setDiscountsMap(map);
       }
     };
@@ -140,7 +128,7 @@ export default function CartPage() {
       return {
         ...it,
         unitPrice: unit,
-        finalUnitPrice: discounted ? finalPrice : unit, // replace old with new
+        finalUnitPrice: discounted ? finalPrice : unit,
         discounted,
         lineFinalTotal: (discounted ? finalPrice : unit) * it.qty,
       };
@@ -155,7 +143,6 @@ export default function CartPage() {
   const grandTotal = useMemo(() => discountedSubtotal, [discountedSubtotal]);
 
   const removeLine = (productId: string) => {
-    // Non-optimistic removal
     dispatch(setItemAbs({ productId, qty: 0 }));
   };
 
@@ -172,6 +159,9 @@ export default function CartPage() {
     observer.observe(checkoutEl);
     return () => observer.disconnect();
   }, []);
+
+  // Helper to pick image source like ProductCard (prefer coverImage)
+  const getImageSrc = (it: CartLine) => it.coverImage || it.imageUrl || fallbackImage;
 
   return (
     <>
@@ -204,18 +194,23 @@ export default function CartPage() {
                       <tr key={it.productId} className="border-b">
                         <td className="py-4 flex items-center space-x-4">
                           <Image
-                            src={imageById[it.productId] || fallbackImage}
+                            src={getImageSrc(it)}
                             alt={it.name}
                             width={64}
                             height={64}
-                            className="object-cover rounded"
+                            className="object-contain rounded"
+                            sizes="64px"
+                            onError={(e) => {
+                              const img = e.currentTarget as HTMLImageElement & { src: string };
+                              if (img.src !== fallbackImage) img.src = fallbackImage;
+                            }}
                           />
                           <div>
                             <p className="text-black">{it.name}</p>
                           </div>
                         </td>
 
-                        {/* Unit Price cell: red if discounted, otherwise normal */}
+                        {/* Unit Price cell */}
                         <td className="py-4">
                           <span className={it.discounted ? "text-red-600 font-semibold" : ""}>
                             € {it.finalUnitPrice.toFixed(2)}
@@ -227,11 +222,11 @@ export default function CartPage() {
                             productId={it.productId}
                             qty={it.qty}
                             min={1}
-                            price={Number(it.finalUnitPrice)} // pass the current unit price
+                            price={Number(it.finalUnitPrice)}
                           />
                         </td>
 
-                        {/* Line Subtotal cell: red if discounted */}
+                        {/* Line Subtotal cell */}
                         <td className="py-4">
                           <span className={it.discounted ? "text-red-600 font-semibold" : ""}>
                             € {it.lineFinalTotal.toFixed(2)}
@@ -250,16 +245,18 @@ export default function CartPage() {
               {/* Mobile Cards */}
               <div className="space-y-4 md:hidden">
                 {lines.map((it) => (
-                  <div
-                    key={it.productId}
-                    className="border rounded-lg p-4 flex items-start gap-4"
-                  >
+                  <div key={it.productId} className="border rounded-lg p-4 flex items-start gap-4">
                     <Image
-                      src={imageById[it.productId] || fallbackImage}
+                      src={getImageSrc(it)}
                       alt={it.name}
                       width={80}
                       height={80}
-                      className="object-cover rounded"
+                      className="object-contain rounded"
+                      sizes="80px"
+                      onError={(e) => {
+                        const img = e.currentTarget as HTMLImageElement & { src: string };
+                        if (img.src !== fallbackImage) img.src = fallbackImage;
+                      }}
                     />
                     <div className="flex-1">
                       <p className="font-medium text-black mb-1">{it.name}</p>
@@ -288,10 +285,7 @@ export default function CartPage() {
                 ))}
               </div>
 
-              <Link
-                href="/products"
-                className="mt-4 inline-block text-blue-500 hover:underline"
-              >
+              <Link href="/products" className="mt-4 inline-block text-blue-500 hover:underline">
                 ← Continue Shopping
               </Link>
             </div>

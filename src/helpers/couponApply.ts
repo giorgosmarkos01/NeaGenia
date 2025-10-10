@@ -1,4 +1,3 @@
-// /helpers/couponApply.ts
 import type { RowDataPacket } from "mysql2";
 import { db } from "@/lib/db";
 
@@ -24,7 +23,7 @@ type DiscountRow = {
 type ItemRow = {
   id: string;          // UUID
   slug: string;
-  price: number;
+  price: number;       // GROSS (VAT-included) unit price
   category_id: number;
 } & RowDataPacket;
 
@@ -35,16 +34,20 @@ export type AppliedCouponResult = {
   discountId?: number;
   lines: Array<{
     itemId: string;          // UUID
-    unitPrice: number;       // authoritative price from DB
+    unitPrice: number;       // authoritative gross unit price from DB
     qty: number;
-    originalLineTotal: number;
-    finalLineTotal: number;
-    discountAmount: number;
+    originalLineTotal: number; // gross
+    finalLineTotal: number;    // gross after NET-discount + re-gross
+    discountAmount: number;    // gross delta
     appliedDiscountIds: number[];
   }>;
-  subtotalBefore: number;
-  subtotalAfter: number;
+  subtotalBefore: number; // gross
+  subtotalAfter: number;  // gross
 };
+
+// === NEW: VAT handling ===
+const VAT_RATE = 0.24; // 24% VAT
+const round2 = (n: number) => Math.round((n + Number.EPSILON) * 100) / 100;
 
 const ACTIVE = `
   d.active = 1
@@ -57,33 +60,77 @@ const placeholders = (n: number) => Array(n).fill("?").join(",");
 const looksLikeUuid = (s: string) =>
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(s);
 
-function applyBestDiscountForLine(unitPrice: number, qty: number, discounts: DiscountRow[]) {
-  const base = unitPrice * qty;
-  if (!discounts.length) return { finalLineTotal: base, discountAmount: 0, applied: [] as number[] };
+/**
+ * Apply discounts to the NET price (pre-VAT), then re-gross.
+ * - unitPrice is GROSS (VAT-included)
+ * - discounts: fixed values and percent values are assumed to be defined on NET
+ *              (as per your new requirement)
+ */
+function applyBestDiscountForLine(
+  unitPriceGross: number,
+  qty: number,
+  discounts: DiscountRow[]
+) {
+  const baseGrossLineTotal = round2(unitPriceGross * qty);
+  if (!discounts.length) {
+    return {
+      finalLineTotal: baseGrossLineTotal,
+      discountAmount: 0,
+      applied: [] as number[],
+    };
+  }
 
-  const allStackable = discounts.every(d => !!d.stackable);
-  if (allStackable) {
-    let unit = unitPrice;
-    for (const d of discounts) {
-      unit = d.discount_type === "percent"
-        ? Math.max(0, unit * (1 - Number(d.value) / 100))
-        : Math.max(0, unit - Number(d.value));
+  // Convert to NET unit
+  const netUnit = unitPriceGross / (1 + VAT_RATE);
+
+  const applyOne = (net: number, d: DiscountRow) => {
+    if (d.discount_type === "percent") {
+      const pct = Math.min(Math.max(Number(d.value), 0), 100);
+      return Math.max(0, net * (1 - pct / 100));
+    } else {
+      // fixed discount on NET
+      return Math.max(0, net - Number(d.value));
     }
-    const total = Math.max(0, unit * qty);
-    return { finalLineTotal: total, discountAmount: base - total, applied: discounts.map(d => d.id) };
+  };
+
+  // Stackable path — apply in sequence (fixed first, then percent)
+  const allStackable = discounts.every((d) => !!d.stackable);
+  if (allStackable) {
+    const ordered = [
+      ...discounts.filter((d) => d.discount_type === "fixed"),
+      ...discounts.filter((d) => d.discount_type === "percent"),
+    ];
+    let netAfter = netUnit;
+    for (const d of ordered) netAfter = applyOne(netAfter, d);
+
+    const grossUnitAfter = round2(netAfter * (1 + VAT_RATE));
+    const finalLineTotal = round2(grossUnitAfter * qty);
+    return {
+      finalLineTotal,
+      discountAmount: round2(baseGrossLineTotal - finalLineTotal),
+      applied: ordered.map((d) => d.id),
+    };
   }
 
-  // pick the single best
-  let bestTotal = base;
+  // Non-stackable exists — pick the single best (lowest gross line total)
+  let bestGross = baseGrossLineTotal;
   let bestId: number | null = null;
+
   for (const d of discounts) {
-    const unit = d.discount_type === "percent"
-      ? Math.max(0, unitPrice * (1 - Number(d.value) / 100))
-      : Math.max(0, unitPrice - Number(d.value));
-    const total = unit * qty;
-    if (total < bestTotal) { bestTotal = total; bestId = d.id; }
+    const netAfter = applyOne(netUnit, d);
+    const grossUnitAfter = round2(netAfter * (1 + VAT_RATE));
+    const lineGross = round2(grossUnitAfter * qty);
+    if (lineGross < bestGross) {
+      bestGross = lineGross;
+      bestId = d.id;
+    }
   }
-  return { finalLineTotal: bestTotal, discountAmount: base - bestTotal, applied: bestId ? [bestId] : [] };
+
+  return {
+    finalLineTotal: bestGross,
+    discountAmount: round2(baseGrossLineTotal - bestGross),
+    applied: bestId ? [bestId] : [],
+  };
 }
 
 /**
@@ -91,7 +138,7 @@ function applyBestDiscountForLine(unitPrice: number, qty: number, discounts: Dis
  */
 async function resolveItems(identifiers: string[]): Promise<Map<string, ItemRow>> {
   const uuids = identifiers.filter(looksLikeUuid);
-  const slugs = identifiers.filter(id => !looksLikeUuid(id)).map(s => s.toLowerCase());
+  const slugs = identifiers.filter((id) => !looksLikeUuid(id)).map((s) => s.toLowerCase());
 
   let rows: ItemRow[] = [];
   if (uuids.length && slugs.length) {
@@ -121,7 +168,6 @@ async function resolveItems(identifiers: string[]): Promise<Map<string, ItemRow>
     rows = r as ItemRow[];
   }
 
-  // index by both uuid and slug for quick lookup
   const map = new Map<string, ItemRow>();
   for (const it of rows) {
     map.set(it.id, it);
@@ -135,12 +181,13 @@ async function resolveItems(identifiers: string[]): Promise<Map<string, ItemRow>
  * - If coupon is null/empty → returns undiscounted lines (ok=true).
  * - If coupon invalid → ok=false, reason="invalid_coupon".
  * - If valid but not applicable → ok=false, reason="not_applicable" (lines still returned).
+ * All totals are GROSS (VAT-included). Discounts are applied on NET, then re-grossed.
  */
 export async function applyCouponServerSide(
   coupon: string | null | undefined,
   cart: CartLineIn[]
 ): Promise<AppliedCouponResult> {
-  const identifiers = cart.map(l => String(l.identifier || "").trim()).filter(Boolean);
+  const identifiers = cart.map((l) => String(l.identifier || "").trim()).filter(Boolean);
   if (!identifiers.length) {
     return { ok: false, reason: "not_applicable", lines: [], subtotalBefore: 0, subtotalAfter: 0 };
   }
@@ -149,28 +196,30 @@ export async function applyCouponServerSide(
   const itemIndex = await resolveItems(identifiers);
 
   // normalize cart lines to DB-backed entries
-  const normalized = cart.map(l => {
-    const key = String(l.identifier || "").trim();
-    const candidate = itemIndex.get(looksLikeUuid(key) ? key : key.toLowerCase());
-    if (!candidate) return null;
-    return {
-      db: candidate,
-      qty: Number(l.qty) || 0,
-    };
-  }).filter(Boolean) as Array<{ db: ItemRow; qty: number }>;
+  const normalized = cart
+    .map((l) => {
+      const key = String(l.identifier || "").trim();
+      const candidate = itemIndex.get(looksLikeUuid(key) ? key : key.toLowerCase());
+      if (!candidate) return null;
+      return {
+        db: candidate,
+        qty: Number(l.qty) || 0,
+      };
+    })
+    .filter(Boolean) as Array<{ db: ItemRow; qty: number }>;
 
   if (!normalized.length) {
     return { ok: false, reason: "not_applicable", lines: [], subtotalBefore: 0, subtotalAfter: 0 };
   }
 
-  // If no coupon: return undiscounted lines (still ok=true)
+  // If no coupon: return undiscounted lines (ok=true)
   if (!coupon) {
     const lines = normalized.map(({ db, qty }) => {
-      const unit = Number(db.price) || 0;
-      const base = unit * qty;
+      const unitGross = Number(db.price) || 0;
+      const base = round2(unitGross * qty);
       return {
         itemId: db.id,
-        unitPrice: unit,
+        unitPrice: unitGross,
         qty,
         originalLineTotal: base,
         finalLineTotal: base,
@@ -178,7 +227,7 @@ export async function applyCouponServerSide(
         appliedDiscountIds: [],
       };
     });
-    const subtotalBefore = lines.reduce((s, r) => s + r.originalLineTotal, 0);
+    const subtotalBefore = round2(lines.reduce((s, r) => s + r.originalLineTotal, 0));
     return { ok: true, lines, subtotalBefore, subtotalAfter: subtotalBefore };
   }
 
@@ -190,13 +239,13 @@ export async function applyCouponServerSide(
   );
   const found = (foundRows ?? []) as Array<{ id: number }>;
   if (!found.length) {
-    // invalid coupon -> still return undiscounted lines
+    // invalid coupon -> undiscounted lines
     const lines = normalized.map(({ db, qty }) => {
-      const unit = Number(db.price) || 0;
-      const base = unit * qty;
+      const unitGross = Number(db.price) || 0;
+      const base = round2(unitGross * qty);
       return {
         itemId: db.id,
-        unitPrice: unit,
+        unitPrice: unitGross,
         qty,
         originalLineTotal: base,
         finalLineTotal: base,
@@ -204,13 +253,13 @@ export async function applyCouponServerSide(
         appliedDiscountIds: [],
       };
     });
-    const subtotalBefore = lines.reduce((s, r) => s + r.originalLineTotal, 0);
+    const subtotalBefore = round2(lines.reduce((s, r) => s + r.originalLineTotal, 0));
     return { ok: false, reason: "invalid_coupon", lines, subtotalBefore, subtotalAfter: subtotalBefore };
   }
   const discountId = Number(found[0].id);
 
   // 2) Fetch discount links (by item & by category) for THIS coupon
-  const ids = normalized.map(n => n.db.id);
+  const ids = normalized.map((n) => n.db.id);
   const ph = placeholders(ids.length);
 
   const [byItemRows]: any[] = await db.query(
@@ -246,25 +295,29 @@ export async function applyCouponServerSide(
     discountsByItem.set(k, arr);
   }
 
-  // 3) Compute discounted totals
+  // 3) Compute discounted totals (VAT-aware)
   const lines = normalized.map(({ db, qty }) => {
-    const unit = Number(db.price) || 0;
+    const unitGross = Number(db.price) || 0;
     const ds = discountsByItem.get(db.id) ?? [];
-    const { finalLineTotal, discountAmount, applied } = applyBestDiscountForLine(unit, qty, ds);
+    const { finalLineTotal, discountAmount, applied } = applyBestDiscountForLine(
+      unitGross,
+      qty,
+      ds
+    );
     return {
       itemId: db.id,
-      unitPrice: unit,
+      unitPrice: unitGross,
       qty,
-      originalLineTotal: unit * qty,
+      originalLineTotal: round2(unitGross * qty),
       finalLineTotal,
       discountAmount,
       appliedDiscountIds: applied,
     };
   });
 
-  const subtotalBefore = lines.reduce((s, r) => s + r.originalLineTotal, 0);
-  const subtotalAfter  = lines.reduce((s, r) => s + r.finalLineTotal, 0);
-  const appliedAny = lines.some(l => l.discountAmount > 0);
+  const subtotalBefore = round2(lines.reduce((s, r) => s + r.originalLineTotal, 0));
+  const subtotalAfter = round2(lines.reduce((s, r) => s + r.finalLineTotal, 0));
+  const appliedAny = lines.some((l) => l.discountAmount > 0);
 
   return {
     ok: appliedAny,

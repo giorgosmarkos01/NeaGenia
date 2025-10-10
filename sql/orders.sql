@@ -1,6 +1,7 @@
 -- orders
 CREATE TABLE orders (
   order_id CHAR(36) PRIMARY KEY DEFAULT (UUID()),
+  user_id VARCHAR(191) NULL,
   customer_name VARCHAR(255) NOT NULL,
   email VARCHAR(255) NOT NULL,
   phone_number VARCHAR(20) NOT NULL,

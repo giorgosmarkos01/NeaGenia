@@ -4,7 +4,7 @@ export async function getAccessToken(): Promise<string> {
   ).toString("base64");
 
   const res = await fetch(
-    "https://demo-accounts.vivapayments.com/connect/token",
+    "https://accounts.vivapayments.com/connect/token",
     {
       method: "POST",
       headers: {

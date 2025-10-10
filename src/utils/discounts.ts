@@ -1,4 +1,10 @@
+// src/utils/discounts.ts
 import type { Discount, DiscountableProductRef } from "@/types/discount";
+
+/** --- VAT helpers (Greece ~24%) --- */
+export const VAT_RATE = 0.24;
+export const toNet = (gross: number) => gross / (1 + VAT_RATE);
+export const toGross = (net: number) => net * (1 + VAT_RATE);
 
 /** Active now according to active flag implied by endpoint + starts/ends window */
 export function isDiscountActive(d: Discount, now = new Date()): boolean {
@@ -88,21 +94,47 @@ export function applyDiscountsToPrice(
 }
 
 /**
- * Filter applicable & active discounts for a product.
- * Returns the chosen set you should apply (already respects stackable logic).
+ * NEW behavior:
+ * - product.price is GROSS (includes VAT)
+ * - We pick applicable/active discounts
+ * - We apply them on NET (gross / (1+VAT))
+ * - Then we re-add VAT for the returned finalPrice
+ *
+ * If no discounts apply, finalPrice = original gross (unchanged).
  */
 export function pickDiscountsForProduct(
   product: DiscountableProductRef,
   discounts: Discount[],
   now = new Date()
 ): { applicable: Discount[]; finalPrice: number } {
-  // 1) active + applicable
+  // 1) Active + applicable
   const candidates = discounts.filter(
     (d) => isDiscountActive(d, now) && isDiscountApplicableToProduct(d, product)
   );
 
-  // 2) choose set to apply (stackable rules)
-  const { final, applied } = applyDiscountsToPrice(product.price, candidates);
+  if (candidates.length === 0) {
+    // No discounts → return original gross unchanged
+    return { applicable: [], finalPrice: product.price };
+  }
 
-  return { applicable: applied, finalPrice: final };
+  // 2) Apply on NET price, then re-gross
+  const netStart = toNet(product.price);
+  const { final: finalNet, applied } = applyDiscountsToPrice(netStart, candidates);
+  const finalGross = toGross(finalNet);
+
+  return { applicable: applied, finalPrice: finalGross };
+}
+
+/**
+ * Optional helper if you ever want to directly pass the chosen applicable discounts
+ * and just compute "net then re-gross" in one call.
+ */
+export function applyDiscountsOnNetAndRegross(
+  unitGross: number,
+  applicableDiscounts: Discount[]
+): number {
+  if (!applicableDiscounts?.length) return unitGross;
+  const net = toNet(unitGross);
+  const { final: finalNet } = applyDiscountsToPrice(net, applicableDiscounts);
+  return toGross(finalNet);
 }

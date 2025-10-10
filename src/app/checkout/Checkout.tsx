@@ -14,14 +14,12 @@ import BoxNowMap from "@/components/client/BoxNowMap";
 
 type DocType = "receipt" | "invoice";
 
+const VAT_RATE = 0.24; // 24% 
+
 export default function CheckoutPage() {
   const items = useSelector(selectCartItems);
   const count = useSelector(selectCount);
   const [selectingBoxNow, setSelectingBoxNow] = useState(false);
-  useEffect(() => {
-    // You should see an array of lines with id/slug/price/qty, etc.
-    console.log("[Checkout] items from Redux >", items);
-  }, [items]);
 
   const [docType, setDocType] = useState<DocType>("receipt");
   const [agree, setAgree] = useState(false);
