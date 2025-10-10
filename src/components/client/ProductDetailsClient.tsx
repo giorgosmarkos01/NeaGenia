@@ -14,6 +14,7 @@ import Link from "next/link";
 import type { ProductDetail } from "@/types/product";
 import type { Discount } from "@/types/discount";
 import { pickDiscountsForProduct } from "@/utils/discounts";
+import rehypeRaw from "rehype-raw";
 
 const fallbackImage = "/logo.png";
 
@@ -333,6 +334,7 @@ export default function ProductDetailsClient({
                 <div className="prose prose-blue max-w-none text-black">
                   <ReactMarkdown
                     remarkPlugins={[remarkGfm]}
+                    rehypePlugins={[rehypeRaw]}
                     components={markdownComponents}
                   >
                     {item.descriptionFull}
@@ -352,6 +354,7 @@ export default function ProductDetailsClient({
                 <div className="prose prose-blue max-w-none text-black">
                   <ReactMarkdown
                     remarkPlugins={[remarkGfm]}
+                    rehypePlugins={[rehypeRaw]}
                     components={markdownComponents}
                   >
                     {item.specifications}

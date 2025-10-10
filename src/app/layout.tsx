@@ -30,18 +30,6 @@ export default function RootLayout({
   return (
     <ClerkProvider>
       <html lang="en">
-        <head>
-          {/* ✅ DNS Prefetch + Preconnect */}
-          <link rel="dns-prefetch" href="https://clerk.svkroboticstore.com" />
-          <link
-            rel="preconnect"
-            href="https://clerk.svkroboticstore.com"
-            crossOrigin="anonymous"
-          />
-
-          {/* ✅ Canonical link */}
-          <link rel="canonical" href="https://svkroboticstore.com" />
-        </head>
         <body
           className={`${geistSans.variable} ${geistMono.variable} antialiased`}
         >
