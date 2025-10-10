@@ -1,0 +1,14 @@
+# *
+User-agent: *
+Allow: /
+Disallow: /cart
+Disallow: /checkout
+Disallow: /success
+Disallow: /userorderhistory
+Disallow: /api/*
+
+# Host
+Host: https://svkroboticstore.com
+
+# Sitemaps
+Sitemap: https://svkroboticstore.com/sitemap.xml

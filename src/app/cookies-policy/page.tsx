@@ -18,9 +18,10 @@ export default function CookiesPolicyPage() {
         </p>
 
         <p className="mb-6">
-          This Cookies Policy explains how <strong>SVK Robotics</strong> (&quot;we&quot;,
-          &quot;our&quot;, &quot;us&quot;) uses cookies and similar technologies when you visit our
-          website and e-shop. It also explains your choices regarding cookies.
+          This Cookies Policy explains how <strong>SVK Robotics</strong>{" "}
+          (&quot;we&quot;, &quot;our&quot;, &quot;us&quot;) uses cookies and
+          similar technologies when you visit our website and e-shop. It also
+          explains your choices regarding cookies.
         </p>
 
         <p className="mb-6">
@@ -127,7 +128,10 @@ export default function CookiesPolicyPage() {
         <div className="bg-gray-50 border-l-4 border-blue-600 p-4 rounded">
           <p>
             📧 Email:{" "}
-            <a href="mailto:info@svkrobotics.com" className="text-blue-600 underline">
+            <a
+              href="mailto:info@svkrobotics.com"
+              className="text-blue-600 underline"
+            >
               info@svkrobotics.com
             </a>
             <br />

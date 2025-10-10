@@ -20,11 +20,18 @@ export default function TermsOfUsePage() {
 
         <h2 className="text-2xl font-semibold mt-8 mb-2">1. Introduction</h2>
         <p className="mb-6">
-          Welcome to <strong>SVK Robotics</strong> (&quot;Company&quot;, &quot;we&quot;, &quot;our&quot;,
-          &quot;us&quot;). By accessing and using our website, including any related
-          subdomains or services offered through the website (collectively, the
-          &quot;Site&quot;), you agree to be bound by these Terms of Use (&quot;Terms&quot;). If you
-          do not agree with any of these Terms, you should not use the Site.
+          Welcome to <strong>SVK Robotics</strong> (&quot;Company&quot;,
+          &quot;we&quot;, &quot;our&quot;, &quot;us&quot;). By accessing and
+          using our website, including any related subdomains or services
+          offered through the website (collectively, the &quot;Site&quot;), you
+          agree to be bound by these Terms of Use (&quot;Terms&quot;). If you do
+          not agree with any of these Terms, you should not use the Site.
+          Welcome to <strong>SVK Robotics</strong> (&quot;Company&quot;,
+          &quot;we&quot;, &quot;our&quot;, &quot;us&quot;). By accessing and
+          using our website, including any related subdomains or services
+          offered through the website (collectively, the &quot;Site&quot;), you
+          agree to be bound by these Terms of Use (&quot;Terms&quot;). If you do
+          not agree with any of these Terms, you should not use the Site.
         </p>
 
         <p className="mb-6">

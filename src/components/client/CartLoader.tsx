@@ -16,7 +16,6 @@ export default function CartLoader() {
     (async () => {
       const res = await fetch("/api/cart/items", { cache: "no-store" });
       const data = await res.json();
-      console.log("[CartLoader] Response:", data);
       dispatch(setCart(data.items || []));
     })();
   }, [dispatch]);

@@ -42,7 +42,7 @@ export default function CookieConsent() {
           We use cookies to improve your experience. Essential cookies are
           always enabled as required by GDPR.{" "}
           <a href="/cookies-policy" className="underline text-blue-400">
-            Learn more
+            Learn more about our Cookies Policy
           </a>
           .
         </p>

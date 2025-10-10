@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import Navbar from "@/components/client/Navbar";
 import Footer from "@/components/client/Footer";
-import ReactMarkdown from "react-markdown";
+import ReactMarkdown, { type Components } from "react-markdown";
 import remarkGfm from "remark-gfm";
 import Breadcrumbs from "@/components/client/Breadcrumbs";
 import { titleCaseFromSlug } from "@/lib/titleCaseFromSlug";
@@ -12,11 +12,46 @@ import Image from "next/image";
 import AddProductToCartButton from "./AddProductToCartButton";
 import Link from "next/link";
 import type { ProductDetail } from "@/types/product";
-
 import type { Discount } from "@/types/discount";
 import { pickDiscountsForProduct } from "@/utils/discounts";
 
 const fallbackImage = "/logo.png";
+
+// 👉 Custom markdown renderers
+const markdownComponents: Components = {
+  a: ({ node, ...props }) => (
+    <a
+      {...props}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="text-blue-600 underline"
+    />
+  ),
+  p: ({ node, children }) => {
+    const onlyChild = Array.isArray(children) ? children[0] : children;
+
+    // YouTube auto-embed
+    if (
+      typeof onlyChild === "string" &&
+      onlyChild.startsWith("https://www.youtube.com")
+    ) {
+      const videoId = onlyChild.split("v=")[1];
+      return (
+        <div className="aspect-w-16 aspect-h-9 my-4">
+          <iframe
+            src={`https://www.youtube.com/embed/${videoId}`}
+            frameBorder="0"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowFullScreen
+            className="w-full h-full"
+          />
+        </div>
+      );
+    }
+
+    return <p>{children}</p>;
+  },
+};
 
 export default function ProductDetailsClient({
   item,
@@ -30,7 +65,7 @@ export default function ProductDetailsClient({
     item.coverImage || fallbackImage
   );
 
-  /* ---------- Discounts (computed from props) ---------- */
+  /* ---------- Discounts ---------- */
   const originalPrice = Number(item.price) || 0;
 
   const { finalPrice, applicable } = useMemo(() => {
@@ -38,7 +73,6 @@ export default function ProductDetailsClient({
       {
         id: item.id,
         price: originalPrice,
-        // we have categoryId; if you later add categoryPath, pass it too
         categoryId: item.categoryId,
       },
       discounts
@@ -49,15 +83,19 @@ export default function ProductDetailsClient({
 
   /* ---------- Variations state ---------- */
   const hasVariations = (item.variations?.length ?? 0) > 0;
-  const isExclusive = useMemo(
-    () => hasVariations && item.variations.every((v) => v.selectionType === "exclusive"),
-    [hasVariations, item.variations]
-  );
+  const isExclusive = useMemo(() => {
+    return (
+      hasVariations &&
+      item.variations.every((v) => v.selectionType === "exclusive")
+    );
+  }, [hasVariations, item.variations]);
 
   const [selectedExclusiveId, setSelectedExclusiveId] = useState<number | null>(
     isExclusive ? item.variations[0]?.id ?? null : null
   );
-  const [selectedOptionalIds, setSelectedOptionalIds] = useState<Set<number>>(new Set());
+  const [selectedOptionalIds, setSelectedOptionalIds] = useState<Set<number>>(
+    new Set()
+  );
 
   const toggleOptional = (id: number) => {
     setSelectedOptionalIds((prev) => {
@@ -81,7 +119,6 @@ export default function ProductDetailsClient({
     <>
       <Navbar />
 
-      {/* Wider container (max-w-7xl) */}
       <div className="bg-white max-w-7xl mx-auto p-6 grid grid-cols-1 md:grid-cols-2 gap-8">
         {/* Left: Image Gallery */}
         <div>
@@ -98,7 +135,6 @@ export default function ProductDetailsClient({
             separator="/"
           />
 
-          {/* Sticky wrapper (desktop and up) */}
           <div className="md:sticky md:top-28 md:self-start">
             <div className="bg-gray-100 rounded-lg flex items-center justify-center p-4 h-[400px] relative">
               <Image
@@ -112,30 +148,31 @@ export default function ProductDetailsClient({
             </div>
 
             <div className="flex mt-4 gap-2">
-              {(item.images?.length ? item.images : [{ url: fallbackImage }]).map(
-                (img, index) => {
-                  const fullImg = img.url || fallbackImage;
-                  return (
-                    <button
-                      type="button"
-                      key={index}
-                      className={`relative w-16 h-16 rounded-md border overflow-hidden cursor-pointer focus:outline-none ${
-                        selectedImage === fullImg ? "ring-2 ring-blue-500" : ""
-                      }`}
-                      onClick={() => setSelectedImage(fullImg)}
-                      aria-label={`Select image ${index + 1}`}
-                    >
-                      <Image
-                        src={fullImg}
-                        alt={`${item.name} image ${index + 1}`}
-                        fill
-                        className="object-cover rounded-md"
-                        sizes="64px"
-                      />
-                    </button>
-                  );
-                }
-              )}
+              {(item.images?.length
+                ? item.images
+                : [{ url: fallbackImage }]
+              ).map((img, index) => {
+                const fullImg = img.url || fallbackImage;
+                return (
+                  <button
+                    type="button"
+                    key={index}
+                    className={`relative w-16 h-16 rounded-md border overflow-hidden cursor-pointer focus:outline-none ${
+                      selectedImage === fullImg ? "ring-2 ring-blue-500" : ""
+                    }`}
+                    onClick={() => setSelectedImage(fullImg)}
+                    aria-label={`Select image ${index + 1}`}
+                  >
+                    <Image
+                      src={fullImg}
+                      alt={`${item.name} image ${index + 1}`}
+                      fill
+                      className="object-cover rounded-md"
+                      sizes="64px"
+                    />
+                  </button>
+                );
+              })}
             </div>
           </div>
         </div>
@@ -144,7 +181,6 @@ export default function ProductDetailsClient({
         <div className="mt-4 md:mt-0">
           <h1 className="text-3xl font-bold mb-6 text-black">{item.name}</h1>
 
-          {/* Discounted price block (red + ON-SALE) shown ABOVE the regular row */}
           {isDiscounted && (
             <div className="flex items-center gap-2 mb-2">
               <span className="text-2xl font-semibold text-red-600">
@@ -156,7 +192,6 @@ export default function ProductDetailsClient({
             </div>
           )}
 
-          {/* Price (left) + Stock (right) */}
           <div className="flex justify-between items-center mb-6">
             <p className="text-3xl font-bold text-black">
               {isDiscounted ? (
@@ -172,15 +207,15 @@ export default function ProductDetailsClient({
 
           <hr className="my-6" />
 
-          {/* Overview (short description) */}
           {item.descriptionShort && (
             <section className="mb-6">
-              <h2 className="text-lg font-semibold text-black mb-2">Overview</h2>
+              <h2 className="text-lg font-semibold text-black mb-2">
+                Overview
+              </h2>
               <p className="text-black/80">{item.descriptionShort}</p>
             </section>
           )}
 
-          {/* If in a group: show siblings */}
           {item.groupId && item.groupItems && item.groupItems.length > 0 && (
             <>
               <hr className="my-6" />
@@ -219,7 +254,6 @@ export default function ProductDetailsClient({
             </>
           )}
 
-          {/* Variations */}
           {hasVariations && (
             <>
               <hr className="my-6" />
@@ -241,7 +275,9 @@ export default function ProductDetailsClient({
                         <label
                           key={v.id}
                           className={`cursor-pointer inline-flex items-center gap-2 rounded-lg border px-3 py-2 ${
-                            checked ? "border-blue-500 ring-1 ring-blue-300" : "border-gray-300"
+                            checked
+                              ? "border-blue-500 ring-1 ring-blue-300"
+                              : "border-gray-300"
                           }`}
                         >
                           <input
@@ -252,19 +288,21 @@ export default function ProductDetailsClient({
                             onChange={() => setSelectedExclusiveId(v.id)}
                           />
                           <span className="text-sm text-black">
-                            {v.name} <span className="text-gray-500">{priceLabel}</span>
+                            {v.name}{" "}
+                            <span className="text-gray-500">{priceLabel}</span>
                           </span>
                         </label>
                       );
                     }
 
-                    // optional (multi-select)
                     const checked = selectedOptionalIds.has(v.id);
                     return (
                       <label
                         key={v.id}
                         className={`cursor-pointer inline-flex items-center gap-2 rounded-lg border px-3 py-2 ${
-                          checked ? "border-blue-500 ring-1 ring-blue-300" : "border-gray-300"
+                          checked
+                            ? "border-blue-500 ring-1 ring-blue-300"
+                            : "border-gray-300"
                         }`}
                       >
                         <input
@@ -274,7 +312,8 @@ export default function ProductDetailsClient({
                           onChange={() => toggleOptional(v.id)}
                         />
                         <span className="text-sm text-black">
-                          {v.name} <span className="text-gray-500">{priceLabel}</span>
+                          {v.name}{" "}
+                          <span className="text-gray-500">{priceLabel}</span>
                         </span>
                       </label>
                     );
@@ -284,14 +323,18 @@ export default function ProductDetailsClient({
             </>
           )}
 
-          {/* Full Description */}
           {item.descriptionFull && (
             <>
               <hr className="my-6" />
               <section className="mb-6">
-                <h2 className="text-lg font-semibold text-black mb-2">Description</h2>
+                <h2 className="text-lg font-semibold text-black mb-2">
+                  Description
+                </h2>
                 <div className="prose prose-blue max-w-none text-black">
-                  <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                  <ReactMarkdown
+                    remarkPlugins={[remarkGfm]}
+                    components={markdownComponents}
+                  >
                     {item.descriptionFull}
                   </ReactMarkdown>
                 </div>
@@ -299,14 +342,18 @@ export default function ProductDetailsClient({
             </>
           )}
 
-          {/* Specifications */}
           {item.specifications && (
             <>
               <hr className="my-6" />
               <section className="mb-6">
-                <h2 className="text-lg font-semibold text-black mb-2">Specifications</h2>
+                <h2 className="text-lg font-semibold text-black mb-2">
+                  Specifications
+                </h2>
                 <div className="prose prose-blue max-w-none text-black">
-                  <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                  <ReactMarkdown
+                    remarkPlugins={[remarkGfm]}
+                    components={markdownComponents}
+                  >
                     {item.specifications}
                   </ReactMarkdown>
                 </div>
@@ -316,7 +363,6 @@ export default function ProductDetailsClient({
 
           <hr className="my-6" />
 
-          {/* Add to Cart */}
           <div className="flex items-center justify-start gap-4 mb-4">
             <AddProductToCartButton
               product={{
@@ -328,7 +374,6 @@ export default function ProductDetailsClient({
                 coverImage: item.coverImage || fallbackImage,
               }}
               variantIds={selectedVariantIds}
-              className=""
             />
             {!canAdd && (
               <span className="text-sm text-amber-700">
@@ -337,7 +382,6 @@ export default function ProductDetailsClient({
             )}
           </div>
 
-          {/* Category at the very bottom */}
           <div className="text-black">
             <strong>Category:</strong>{" "}
             {item.categoryName ? (

@@ -14,11 +14,12 @@ export default function Privacy() {
         </p>
 
         <p className="mb-6">
-          At <strong>SVK Robotics</strong> (“we”, “our”, “us”), we value your
-          privacy and are committed to safeguarding your personal data. This
-          Privacy Policy explains how we collect, use, and protect your personal
-          information in compliance with the General Data Protection Regulation
-          (GDPR) and other applicable laws.
+          At <strong>SVK Robotics</strong> (&quot;we&quot;, &quot;our&quot;,
+          &quot;us&quot;), we value your privacy and are committed to
+          safeguarding your personal data. This Privacy Policy explains how we
+          collect, use, and protect your personal information in compliance with
+          the General Data Protection Regulation (GDPR) and other applicable
+          laws.
         </p>
 
         {/* Section 1 */}
@@ -41,7 +42,7 @@ export default function Privacy() {
               info@svkrobotics.com
             </a>
             <br />
-            📍 Address: Ραδαμάνθους 18, Heraklion, Crete, Greece
+            📍 Address: Giamalaki 25, Heraklion, Crete, Greece
           </p>
         </div>
 
