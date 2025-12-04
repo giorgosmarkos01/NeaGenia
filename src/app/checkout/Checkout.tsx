@@ -107,7 +107,7 @@ export default function CheckoutPage() {
 
   // -------- Shipping cost (dynamic) --------
   const [shippingFee, setShippingFee] = useState<number>(() =>
-    shipping === "ELTA" ? 4.35 : shipping === "BoxNow" ? 3.0 : 10.0
+    shipping === "ELTA" ? 4.35 : shipping === "BoxNow" ? 4.0 : 10.0
   );
   const [shipCalcLoading, setShipCalcLoading] = useState(false);
   const [shipCalcError, setShipCalcError] = useState<string | null>(null);
@@ -143,6 +143,11 @@ export default function CheckoutPage() {
       setShipping(opts[0]);
       setBoxNowLocker(null);
     }
+
+    // Optional: reset province when switching country
+    if (country !== "Greece") {
+      setProvince("");
+    }
   }, [country]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Keep `shipping` valid for country
@@ -157,7 +162,7 @@ export default function CheckoutPage() {
   useEffect(() => {
     // For non-ELTA or non-Greece, set static fee and bail
     if (country !== "Greece" || shipping !== "ELTA") {
-      setShippingFee(shipping === "BoxNow" ? 3.0 : 10.0); // set your other carriers here if needed
+      setShippingFee(shipping === "BoxNow" ? 4.0 : 10.0); // set your other carriers here if needed
       setShipCalcLoading(false);
       setShipCalcError(null);
       // Cancel any pending debounce or fetch
@@ -481,19 +486,32 @@ export default function CheckoutPage() {
                     <label className="block text-sm text-gray-700 mb-1">
                       Province*
                     </label>
-                    <select
-                      required
-                      value={province}
-                      onChange={(e) => setProvince(e.target.value)}
-                      className="w-full border rounded-md px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    >
-                      <option value="">Select Province</option>
-                      {provinceOptions.map((name) => (
-                        <option key={name} value={name}>
-                          {name}
-                        </option>
-                      ))}
-                    </select>
+
+                    {country === "Greece" ? (
+                      // Dropdown for Greece
+                      <select
+                        required
+                        value={province}
+                        onChange={(e) => setProvince(e.target.value)}
+                        className="w-full border rounded-md px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      >
+                        <option value="">Select Province</option>
+                        {provinceOptions.map((name) => (
+                          <option key={name} value={name}>
+                            {name}
+                          </option>
+                        ))}
+                      </select>
+                    ) : (
+                      // Free text for other countries
+                      <input
+                        required
+                        value={province}
+                        onChange={(e) => setProvince(e.target.value)}
+                        placeholder="State / Province / Region"
+                        className="w-full border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    )}
                   </div>
 
                   <div>
@@ -547,7 +565,7 @@ export default function CheckoutPage() {
                                 )}
                               </>
                             ) : s.toUpperCase() === "BOXNOW" ? (
-                              <>Delivery Cost: 3.00€</>
+                              <>Delivery Cost: 4.00€</>
                             ) : s.toUpperCase() === "FEDEX" ? (
                               <>Delivery Cost: 10.00€</>
                             ) : (
