@@ -1,42 +1,55 @@
-import { mkdir, writeFile, unlink } from "fs/promises";
-import path from "path";
+import { v2 as cloudinary } from "cloudinary";
 
-const UPLOAD_DIR = path.join(process.cwd(), "public", "uploads", "items");
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
 
-function extFromFile(file: File): string {
-  const fromName = path.extname(file.name || "").toLowerCase();
-  if (fromName) return fromName;
-  if (file.type === "image/png") return ".png";
-  if (file.type === "image/webp") return ".webp";
-  return ".jpg";
+const FOLDER = "svkeshop/items";
+
+function uploadBuffer(buffer: Buffer, publicId: string): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const stream = cloudinary.uploader.upload_stream(
+      { folder: FOLDER, public_id: publicId, overwrite: false },
+      (error, result) => {
+        if (error || !result) return reject(error ?? new Error("Cloudinary upload failed"));
+        resolve(result.secure_url);
+      }
+    );
+    stream.end(buffer);
+  });
 }
 
-/** Saves uploaded image files under public/uploads/items and returns their public URLs. */
+/** Uploads image files to Cloudinary and returns their public URLs. */
 export async function saveUploadedImages(
   files: File[],
   slug: string
 ): Promise<string[]> {
   if (!files.length) return [];
-  await mkdir(UPLOAD_DIR, { recursive: true });
 
   const urls: string[] = [];
   for (let i = 0; i < files.length; i++) {
     const file = files[i];
     const buffer = Buffer.from(await file.arrayBuffer());
-    const filename = `${slug}-${Date.now()}-${i}${extFromFile(file)}`;
-    await writeFile(path.join(UPLOAD_DIR, filename), buffer);
-    urls.push(`/uploads/items/${filename}`);
+    const publicId = `${slug}-${Date.now()}-${i}`;
+    urls.push(await uploadBuffer(buffer, publicId));
   }
   return urls;
 }
 
-/** Best-effort delete of a locally-stored image file (no-op for external/CDN URLs). */
+/** Best-effort delete of a Cloudinary-hosted image (no-op for URLs outside our folder, e.g. legacy/seed data). */
 export async function deleteLocalImageFile(url: string): Promise<void> {
-  if (!url.startsWith("/uploads/items/")) return;
-  const filename = path.basename(url);
+  const marker = `/${FOLDER}/`;
+  const idx = url.indexOf(marker);
+  if (idx === -1) return;
+
+  const afterFolder = url.slice(idx + 1); // "svkeshop/items/<public_id>.<ext>"
+  const publicId = afterFolder.replace(/\.[a-zA-Z0-9]+$/, "");
+
   try {
-    await unlink(path.join(UPLOAD_DIR, filename));
+    await cloudinary.uploader.destroy(publicId);
   } catch {
-    // file may not exist locally (e.g. seeded/CDN data) — ignore
+    // ignore — image may already be gone
   }
 }

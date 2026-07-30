@@ -6,6 +6,11 @@ const nextConfig = {
     formats: ["image/avif", "image/webp"], // πιο ελαφριές εικόνες
     remotePatterns: [
       {
+        protocol: "https",
+        hostname: "res.cloudinary.com",
+        pathname: "/**",
+      },
+      {
         protocol: "http",
         hostname: "localhost",
         port: "3000",
