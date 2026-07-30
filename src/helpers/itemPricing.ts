@@ -1,5 +1,6 @@
 import type { RowDataPacket } from "mysql2";
 import { db } from "@/lib/db";
+import { fetchDiscountsForProducts, applyDiscountsForItem } from "@/lib/discountPricing";
 
 type ShippingCode = "ELTA" | "FEDEX" | "BOXNOW";
 
@@ -8,9 +9,11 @@ type Line = {
   productId: string;
   name: string;
   qty: number;
+  categoryId: number | null;
   basePrice: number; // from item.price (authoritative)
+  discountedBasePrice: number; // basePrice after active auto-discounts
   variations: Array<{ id: number; name: string; price: number }>;
-  unitPrice: number;   // base + sum(variation_price)
+  unitPrice: number;   // discountedBasePrice + sum(variation_price)
   lineTotal: number;   // unitPrice * qty
 };
 
@@ -23,7 +26,8 @@ export async function computeOrderTotals(cartId: string, shipping: ShippingCode)
         ci.qty  AS qty,
         i.id    AS productId,
         i.name  AS name,
-        i.price AS basePrice
+        i.price AS basePrice,
+        i.category_id AS categoryId
       FROM cart_items ci
       JOIN item i ON i.id = ci.item_id   -- FIXED: was ci.product_id
       WHERE ci.cart_id = ?
@@ -37,7 +41,9 @@ export async function computeOrderTotals(cartId: string, shipping: ShippingCode)
     productId: String(r.productId),
     name: String(r.name),
     qty: Number(r.qty),
+    categoryId: r.categoryId == null ? null : Number(r.categoryId),
     basePrice: Number(r.basePrice),
+    discountedBasePrice: Number(r.basePrice),
     variations: [],
     unitPrice: 0,
     lineTotal: 0,
@@ -82,10 +88,22 @@ export async function computeOrderTotals(cartId: string, shipping: ShippingCode)
     }
   }
 
-  // 3) Compute authoritative prices
+  // 3) Apply active auto-discounts to each line's base price (authoritative,
+  //    matches what the cart page and product pages show)
+  const discounts = await fetchDiscountsForProducts(lines.map((l) => l.productId));
+  for (const line of lines) {
+    line.discountedBasePrice = applyDiscountsForItem(
+      line.basePrice,
+      line.productId,
+      line.categoryId,
+      discounts
+    );
+  }
+
+  // 4) Compute authoritative prices
   for (const line of lines) {
     const variationsSum = line.variations.reduce((s, v) => s + (Number(v.price) || 0), 0);
-    line.unitPrice = Number((line.basePrice + variationsSum).toFixed(2));
+    line.unitPrice = Number((line.discountedBasePrice + variationsSum).toFixed(2));
     line.lineTotal = Number((line.unitPrice * line.qty).toFixed(2));
   }
 

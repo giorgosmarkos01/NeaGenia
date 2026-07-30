@@ -12,8 +12,6 @@ import Image from "next/image";
 import AddProductToCartButton from "./AddProductToCartButton";
 import Link from "next/link";
 import type { ProductDetail } from "@/types/product";
-import type { Discount } from "@/types/discount";
-import { pickDiscountsForProduct } from "@/utils/discounts";
 import rehypeRaw from "rehype-raw";
 
 const fallbackImage = "/logo.png";
@@ -54,33 +52,15 @@ const markdownComponents: Components = {
   },
 };
 
-export default function ProductDetailsClient({
-  item,
-  discounts = [],
-}: {
-  item: ProductDetail;
-  /** Category- and/or item-scoped discounts passed in by parent/provider */
-  discounts?: Discount[];
-}) {
+export default function ProductDetailsClient({ item }: { item: ProductDetail }) {
   const [selectedImage, setSelectedImage] = useState<string>(
     item.coverImage || fallbackImage
   );
 
   /* ---------- Discounts ---------- */
   const originalPrice = Number(item.price) || 0;
-
-  const { finalPrice, applicable } = useMemo(() => {
-    return pickDiscountsForProduct(
-      {
-        id: item.id,
-        price: originalPrice,
-        categoryId: item.categoryId,
-      },
-      discounts
-    );
-  }, [item.id, item.categoryId, originalPrice, discounts]);
-
-  const isDiscounted = applicable.length > 0 && finalPrice < originalPrice;
+  const finalPrice = item.isOnSale ? Number(item.effectivePrice) : originalPrice;
+  const isDiscounted = item.isOnSale;
 
   /* ---------- Variations state ---------- */
   const hasVariations = (item.variations?.length ?? 0) > 0;

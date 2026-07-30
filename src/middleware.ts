@@ -17,5 +17,5 @@ import { clerkMiddleware } from "@clerk/nextjs/server";
 export default clerkMiddleware();
 
 export const config = {
-  matcher: ["/checkout(.*)", "/userorderhistory(.*)", "/api/(.*)"],
+  matcher: ["/checkout(.*)", "/userorderhistory(.*)", "/admin(.*)", "/api/(.*)"],
 };

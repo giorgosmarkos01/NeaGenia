@@ -47,3 +47,5 @@ next-env.d.ts
 # Compressed folders
 *.zip
 *.tgz
+# clerk configuration (can include secrets)
+/.clerk/

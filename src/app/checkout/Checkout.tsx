@@ -10,6 +10,7 @@ import countriesRaw from "@/assets/countries.json";
 import greekProvincesRaw from "@/assets/greekStates.json";
 import type { GreekRegion, Countries } from "@/types/location";
 import { getShippingOptions, ShippingOption } from "@/lib/shipping";
+import { getBoxNowPricing } from "@/lib/boxNowPricing";
 import BoxNowMap from "@/components/client/BoxNowMap";
 
 type DocType = "receipt" | "invoice";
@@ -88,10 +89,10 @@ export default function CheckoutPage() {
     setPhone(value);
   };
 
-  // -------- Discount-aware subtotal (use server snapshot if present) --------
+  // -------- Discount-aware subtotal (auto item discounts, overridden by a coupon snapshot if present) --------
   const discountedSubtotal = useMemo(() => {
     return items.reduce((sum, it: any) => {
-      const base = Number(it?.price) * Number(it?.qty);
+      const base = Number(it?.effectivePrice ?? it?.price) * Number(it?.qty);
       const overlay = couponLineTotals[it.productId]; // <-- use productId
       return sum + (Number.isFinite(overlay) ? overlay : base);
     }, 0);
@@ -105,9 +106,31 @@ export default function CheckoutPage() {
     return diff > 0 ? Number(diff.toFixed(2)) : 0;
   }, [couponSummary]);
 
+  // -------- BoxNow weight-based eligibility/pricing --------
+  const totalWeightGrams = useMemo(
+    () => items.reduce((sum, it: any) => sum + Number(it?.weight ?? 0) * Number(it?.qty ?? 0), 0),
+    [items]
+  );
+  const boxNowPricing = useMemo(() => getBoxNowPricing(totalWeightGrams), [totalWeightGrams]);
+
+  // Options actually shown to the user (BoxNow hidden once the order doesn't qualify)
+  const visibleShippingOptions = useMemo(
+    () => shippingOptions.filter((s) => s !== "BoxNow" || boxNowPricing.eligible),
+    [shippingOptions, boxNowPricing.eligible]
+  );
+
+  // If BoxNow is selected but the order no longer qualifies (e.g. quantity increased), switch away from it
+  useEffect(() => {
+    if (shipping === "BoxNow" && !boxNowPricing.eligible) {
+      const fallback = shippingOptions.find((s) => s !== "BoxNow") ?? shippingOptions[0];
+      if (fallback) setShipping(fallback);
+      setBoxNowLocker(null);
+    }
+  }, [shipping, boxNowPricing.eligible, shippingOptions]);
+
   // -------- Shipping cost (dynamic) --------
   const [shippingFee, setShippingFee] = useState<number>(() =>
-    shipping === "ELTA" ? 4.35 : shipping === "BoxNow" ? 4.0 : 10.0
+    shipping === "ELTA" ? 4.35 : shipping === "BoxNow" ? (boxNowPricing.price ?? 4.0) : 10.0
   );
   const [shipCalcLoading, setShipCalcLoading] = useState(false);
   const [shipCalcError, setShipCalcError] = useState<string | null>(null);
@@ -162,7 +185,7 @@ export default function CheckoutPage() {
   useEffect(() => {
     // For non-ELTA or non-Greece, set static fee and bail
     if (country !== "Greece" || shipping !== "ELTA") {
-      setShippingFee(shipping === "BoxNow" ? 4.0 : 10.0); // set your other carriers here if needed
+      setShippingFee(shipping === "BoxNow" ? boxNowPricing.price ?? 4.0 : 10.0); // set your other carriers here if needed
       setShipCalcLoading(false);
       setShipCalcError(null);
       // Cancel any pending debounce or fetch
@@ -235,7 +258,7 @@ export default function CheckoutPage() {
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current);
     };
-  }, [city, province, zip, country, shipping, items]);
+  }, [city, province, zip, country, shipping, items, boxNowPricing.price]);
 
   // Totals
   const grandTotal = useMemo(
@@ -532,7 +555,7 @@ export default function CheckoutPage() {
                   <p className="text-sm text-gray-700 mb-2">Shipping Options</p>
 
                   <div className="grid sm:grid-cols-3 gap-3">
-                    {shippingOptions.map((s) => (
+                    {visibleShippingOptions.map((s) => (
                       <label
                         key={s}
                         className={`flex items-center gap-3 rounded-xl border p-4 cursor-pointer transition ${
@@ -565,7 +588,7 @@ export default function CheckoutPage() {
                                 )}
                               </>
                             ) : s.toUpperCase() === "BOXNOW" ? (
-                              <>Delivery Cost: 4.00€</>
+                              <>Delivery Cost: {(boxNowPricing.price ?? 4.0).toFixed(2)}€</>
                             ) : s.toUpperCase() === "FEDEX" ? (
                               <>Delivery Cost: 10.00€</>
                             ) : (

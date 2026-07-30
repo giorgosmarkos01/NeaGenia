@@ -6,10 +6,6 @@ import {
 } from "@/data/product";
 import type { ProductSummary } from "@/types/product";
 
-import { getDiscountsByCategorySlug } from "@/data/discount";
-import { DiscountsProvider } from "@/providers/DiscountProvider";
-import type { Discount } from "@/types/discount";
-
 type ProductGridProps = {
   category?: string;
   limit?: number;
@@ -25,32 +21,13 @@ export default async function ProductGrid({
 }: ProductGridProps) {
   const key = category.toLowerCase();
   let products: ProductSummary[] = [];
-  let discountsForProvider: Discount[] = [];
 
   if (key === "popular") {
     products = await getProductsPopular(limit);
   } else if (key === "all-items") {
     products = await getProductsAll(100);
   } else {
-    // category grid
     products = await getProductsByCategory(key, limit);
-
-    // fetch raw summaries
-    const raw = await getDiscountsByCategorySlug(key); // returns DiscountSummary[]
-
-    // normalize -> Discount[]
-    discountsForProvider = raw.map((d) => ({
-      id: d.id,
-      name: d.name,
-      type: d.type,                // "fixed" | "percent"
-      value: d.value,
-      startsAt: d.startsAt,
-      endsAt: d.endsAt,
-      stackable: d.stackable,
-      couponCode: d.couponCode,
-      scope: "category",
-      appliesTo: { categoryId: d.appliesToCategoryId },
-    }));
   }
 
   if (!products.length) {
@@ -62,15 +39,13 @@ export default async function ProductGrid({
   }
 
   return (
-    <DiscountsProvider discounts={discountsForProvider}>
-      <div
-        className={`grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 sm:gap-8 ml-auto mr-auto max-w-6xl ${className}`}
-      >
-        {products.map((p) => (
-          <ProductCard key={p.slug} product={p} />
-        ))}
-      </div>
-    </DiscountsProvider>
+    <div
+      className={`grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 sm:gap-8 ml-auto mr-auto max-w-6xl ${className}`}
+    >
+      {products.map((p) => (
+        <ProductCard key={p.slug} product={p} />
+      ))}
+    </div>
   );
 }
 

@@ -43,7 +43,7 @@ CREATE TABLE cart_items (
 CREATE TABLE cart_item_variations (
   id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   cart_item_id BIGINT UNSIGNED NOT NULL,
-  variation_id INT UNSIGNED NOT NULL,
+  variation_id INT NOT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   CONSTRAINT fk_civ_item FOREIGN KEY (cart_item_id) REFERENCES cart_items(id) ON DELETE CASCADE,
   CONSTRAINT fk_civ_variation FOREIGN KEY (variation_id) REFERENCES item_variation(id) ON DELETE RESTRICT,

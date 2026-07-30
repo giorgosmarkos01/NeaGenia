@@ -9,6 +9,7 @@ import { applyCouponServerSide } from "@/helpers/couponApply";
 import { getOrCreateCartBySession } from "@/lib/cartSession";
 import { auth } from "@clerk/nextjs/server";
 import { cookies } from "next/headers";
+import { getBoxNowPricing } from "@/lib/boxNowPricing";
 type ShipCode = "ELTA" | "FEDEX" | "BOXNOW";
 
 function normShipping(s?: string): ShipCode {
@@ -48,9 +49,27 @@ async function getCartIdForCurrentUser() {
   return { cartId: newId, userId: null };
 }
 
+async function getWeightById(
+  lines: Array<{ productId: string; qty: number }>
+): Promise<Map<string, number>> {
+  const weightById = new Map<string, number>();
+  if (!lines.length) return weightById;
+
+  const ids = lines.map((l) => l.productId);
+  const placeholders = ids.map(() => "?").join(",");
+  const [wrows]: any[] = await db.query(
+    `SELECT id, weight FROM item WHERE id IN (${placeholders})`,
+    ids
+  );
+  for (const r of wrows || []) {
+    weightById.set(String(r.id), Number(r.weight) || 0);
+  }
+  return weightById;
+}
+
 /**
  * Server-validated shipping:
- * - BOXNOW => €3
+ * - BOXNOW => weight-tiered, see boxNowPricing.ts; rejected if the order is too heavy
  * - FEDEX  => €10
  * - ELTA   => call internal calculator
  */
@@ -59,25 +78,30 @@ async function validateShippingCostOnServer(opts: {
   ship: ShipCode;
   address: { city: string; province: string; zip: string; country: string };
   lines: Array<{ productId: string; qty: number }>;
-}): Promise<number> {
+}): Promise<{ ok: true; cost: number } | { ok: false; error: string }> {
   const { req, ship, address, lines } = opts;
 
-  if (ship === "BOXNOW") return 3.0;
-  if (ship === "FEDEX") return 10.0;
+  if (ship === "BOXNOW") {
+    const weightById = await getWeightById(lines);
+    const totalGrams = lines.reduce(
+      (sum, l) => sum + (weightById.get(l.productId) ?? 0) * l.qty,
+      0
+    );
+    const pricing = getBoxNowPricing(totalGrams);
+    if (!pricing.eligible) {
+      return {
+        ok: false,
+        error: "This order is too heavy for BoxNow. Please choose another shipping option.",
+      };
+    }
+    return { ok: true, cost: pricing.price };
+  }
+  if (ship === "FEDEX") return { ok: true, cost: 10.0 };
 
   if (ship === "ELTA") {
-    if (!lines.length) return 4.35;
+    if (!lines.length) return { ok: true, cost: 4.35 };
 
-    const ids = lines.map((l) => l.productId);
-    const placeholders = ids.map(() => "?").join(",");
-    const [wrows]: any[] = await db.query(
-      `SELECT id, weight FROM item WHERE id IN (${placeholders})`,
-      ids
-    );
-    const weightById = new Map<string, number>();
-    for (const r of wrows || []) {
-      weightById.set(String(r.id), Number(r.weight) || 0);
-    }
+    const weightById = await getWeightById(lines);
 
     const base = new URL(req.url);
     const calcUrl = new URL(
@@ -105,16 +129,16 @@ async function validateShippingCostOnServer(opts: {
         cache: "no-store",
       });
 
-      if (!res.ok) return 4.35;
+      if (!res.ok) return { ok: true, cost: 4.35 };
       const data = await res.json();
       const cost = Number(data?.deliveryCost);
-      return Number.isFinite(cost) ? cost : 4.35;
+      return { ok: true, cost: Number.isFinite(cost) ? cost : 4.35 };
     } catch {
-      return 4.35;
+      return { ok: true, cost: 4.35 };
     }
   }
 
-  return 4.35;
+  return { ok: true, cost: 4.35 };
 }
 
 export async function POST(req: Request) {
@@ -191,12 +215,16 @@ export async function POST(req: Request) {
 
   // 2) Server-validated shipping (independent of coupon)
   const forShip = lines.map((l) => ({ productId: l.productId, qty: l.qty }));
-  const shippingCost = await validateShippingCostOnServer({
+  const shippingResult = await validateShippingCostOnServer({
     req,
     ship,
     address: { city, province, zip, country },
     lines: forShip,
   });
+  if (!shippingResult.ok) {
+    return NextResponse.json({ error: shippingResult.error }, { status: 400 });
+  }
+  const shippingCost = shippingResult.cost;
 
   // 3) Apply coupon server-side (only if provided)
   let discountedSubtotal = subtotal;

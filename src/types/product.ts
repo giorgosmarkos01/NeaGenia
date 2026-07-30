@@ -20,6 +20,8 @@ export type ProductDetail = {
   createdAt: string;
   updatedAt: string;
   coverImage: string;
+  effectivePrice: number;
+  isOnSale: boolean;
   images: { url: string; createdAt: string }[];
   groupItems?: {
     id: string;
@@ -43,6 +45,9 @@ export interface ProductSummary {
   name: string;
   slug: string;
   price: number;
+  categoryId: number;
+  effectivePrice: number;
+  isOnSale: boolean;
   stock: number;
   coverImage: string;
   descriptionShort: string;

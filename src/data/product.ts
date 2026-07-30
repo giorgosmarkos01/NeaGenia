@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { queryRows } from "@/lib/db";
 import type { RowDataPacket } from "mysql2";
 import type { ProductSummary, ProductDetail } from "@/types/product";
+import { fetchDiscountsForProducts, applyDiscountsForItem } from "@/lib/discountPricing";
 
 const CDN_BASE = process.env.NEXT_PUBLIC_CDN_BASE || "";
 const FALLBACK_IMAGE = "/logo.png";
@@ -13,12 +14,30 @@ function normalizeSummaryRow(row: any) {
     name: row.name,
     slug: row.slug,
     price: row.price,
+    categoryId: row.categoryId,
     stock: row.stock,
     descriptionShort: row.descriptionShort ?? row.description_short ?? "",
     // <-- the important bit: prefer camelCase, fall back to snake_case
     stockStatus: row.stockStatus ?? row.stock_status ?? "",
     coverImage: toAbs(row.coverImage ?? row.cover_image ?? null),
   };
+}
+
+/** Batch-computes effectivePrice/isOnSale for a list of products, using the
+ *  same discount logic as the cart and checkout so prices stay consistent. */
+async function withDiscounts<
+  T extends { id: string; price: number | string; categoryId: number | null }
+>(products: T[]): Promise<(T & { effectivePrice: number; isOnSale: boolean })[]> {
+  if (products.length === 0) return [];
+
+  const discounts = await fetchDiscountsForProducts(products.map((p) => p.id));
+  return products.map((p) => {
+    const basePrice = Number(p.price);
+    const effectivePrice = discounts.length
+      ? applyDiscountsForItem(basePrice, p.id, p.categoryId, discounts)
+      : basePrice;
+    return { ...p, effectivePrice, isOnSale: effectivePrice < basePrice };
+  });
 }
 
 type ProductSummaryRow = ProductSummary & RowDataPacket;
@@ -45,9 +64,9 @@ const toAbs = (u?: string | null): string => {
 
 // Reusable SELECT (cover image + common fields)
 const BASE_SELECT = `
-  SELECT 
-    i.id, i.name, i.slug, i.price, i.stock, 
-    i.description_short AS descriptionShort, 
+  SELECT
+    i.id, i.name, i.slug, i.price, i.stock, i.category_id AS categoryId,
+    i.description_short AS descriptionShort,
     i.stock_status as stockStatus,
     (
       SELECT imageUrl
@@ -76,7 +95,7 @@ export async function fetchProductsAll(limit = 24): Promise<ProductSummary[]> {
      LIMIT ?`,
     [limit]
   );
-  return rows.map(normalizeSummaryRow);
+  return withDiscounts(rows.map(normalizeSummaryRow));
 }
 
 export async function fetchProductsPopular(limit = 24): Promise<ProductSummary[]> {
@@ -87,7 +106,7 @@ export async function fetchProductsPopular(limit = 24): Promise<ProductSummary[]
      LIMIT ?`,
     [limit]
   );
-  return rows.map(normalizeSummaryRow);
+  return withDiscounts(rows.map(normalizeSummaryRow));
 }
 
 export async function fetchProductsByCategory(
@@ -104,7 +123,7 @@ export async function fetchProductsByCategory(
   `,
     [category, category, limit]
   );
-  return rows.map(normalizeSummaryRow);
+  return withDiscounts(rows.map(normalizeSummaryRow));
 }
 
 /* -------- Cached getters (10 min) -------- */
@@ -113,7 +132,7 @@ export async function getProductsAll(limit = 24) {
   const cached = unstable_cache(
     () => fetchProductsAll(limit),
     ["products-all", String(limit)],
-    { revalidate: 600 }
+    { revalidate: 600, tags: ["products"] }
   );
   return cached();
 }
@@ -122,7 +141,7 @@ export async function getProductsPopular(limit = 24) {
   const cached = unstable_cache(
     () => fetchProductsPopular(limit),
     ["products-popular", String(limit)],
-    { revalidate: 600 }
+    { revalidate: 600, tags: ["products"] }
   );
   return cached();
 }
@@ -136,7 +155,7 @@ export async function getProductsByCategory(category: string, limit = 24) {
   const cached = unstable_cache(
     () => fetchProductsByCategory(key, limit),
     ["products-by-category", key, String(limit)],
-    { revalidate: 600 }
+    { revalidate: 600, tags: ["products"] }
   );
   return cached();
 }
@@ -177,7 +196,7 @@ export async function getCategoryCounts() {
       ];
     },
     ["category-counts"],
-    { revalidate: 600 }
+    { revalidate: 600, tags: ["products"] }
   );
 
   return cached();
@@ -293,12 +312,20 @@ export async function getItemDetailBySlug(slug: string): Promise<ProductDetail |
 
   const coverImage = images.length ? images[0].url : FALLBACK_IMAGE;
 
+  const discounts = await fetchDiscountsForProducts([item.id]);
+  const basePrice = Number(item.price);
+  const effectivePrice = discounts.length
+    ? applyDiscountsForItem(basePrice, item.id, item.categoryId, discounts)
+    : basePrice;
+
   const payload: ProductDetail = {
     ...item,
     coverImage,
     images,
     variations: variationRows,
     groupItems,
+    effectivePrice,
+    isOnSale: effectivePrice < basePrice,
   };
 
   return payload;

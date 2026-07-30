@@ -5,8 +5,12 @@ export interface CartItem {
   name: string;
   price: number;
   qty: number;
+  weight?: number;
   imageUrl?: string | null;
   subtotal?: number;
+  effectivePrice?: number;
+  effectiveLineTotal?: number;
+  discounted?: boolean;
 }
 
 interface CartState {
@@ -124,6 +128,7 @@ const cartSlice = createSlice({
       state.items = (action.payload ?? []).map((it) => ({
         ...it,
         price: Number(it.price),
+        effectivePrice: Number(it.effectivePrice ?? it.price),
       }));
       state.status = "succeeded";
       state.error = null;
@@ -139,6 +144,7 @@ const cartSlice = createSlice({
       s.items = (a.payload.items ?? []).map((it) => ({
         ...it,
         price: Number(it.price),
+        effectivePrice: Number(it.effectivePrice ?? it.price),
       }));
       s.status = "succeeded";
       s.error = null;
@@ -185,5 +191,16 @@ export const selectSubtotal = (s: any) =>
     (sum, i) =>
       sum +
       (typeof i.subtotal === "number" ? i.subtotal : i.qty * Number(i.price)),
+    0
+  );
+
+/** Subtotal after active auto-discounts (what the customer actually pays before shipping/coupons). */
+export const selectDiscountedSubtotal = (s: any) =>
+  selectCartItems(s).reduce(
+    (sum, i) =>
+      sum +
+      (typeof i.effectiveLineTotal === "number"
+        ? i.effectiveLineTotal
+        : i.qty * Number(i.effectivePrice ?? i.price)),
     0
   );

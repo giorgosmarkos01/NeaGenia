@@ -8,17 +8,8 @@ import CartQuantity from "@/components/client/CartQuantity";
 import Image from "next/image";
 import RemoveFromCartButton from "@/components/client/RemoveFromCartButton";
 import { useDispatch, useSelector } from "react-redux";
-import {
-  fetchCart,
-  setItemAbs,
-  selectCartItems,
-  selectSubtotal,
-  selectCartStatus,
-} from "@/store/cartSlice";
+import { fetchCart, setItemAbs, selectCartItems, selectCartStatus } from "@/store/cartSlice";
 import type { AppDispatch } from "@/store/store";
-
-import type { Discount } from "@/types/discount";
-import { pickDiscountsForProduct } from "@/utils/discounts";
 
 const fallbackImage = "/logo.png";
 
@@ -28,6 +19,9 @@ type CartLine = {
   name: string;
   price: number;
   qty: number;
+  effectivePrice?: number;
+  effectiveLineTotal?: number;
+  discounted?: boolean;
   // prefer coverImage like ProductSummary; keep imageUrl for backward-compat
   coverImage?: string | null;
   imageUrl?: string | null;
@@ -38,102 +32,31 @@ export default function CartPage() {
   const dispatch = useDispatch<AppDispatch>();
 
   const cartItems = useSelector(selectCartItems) as CartLine[];
-  const originalSubtotal = useSelector(selectSubtotal);
   const status = useSelector(selectCartStatus);
   const busy = status === "loading";
 
   const [checkoutVisible, setCheckoutVisible] = useState(false);
 
-  // Discounts map per productId
-  const [discountsMap, setDiscountsMap] = useState<Record<string, Discount[]>>({});
-
-  /** Fetch discounts applicable to a given itemId */
-  async function fetchDiscountsForItem(itemId: string): Promise<Discount[]> {
-    const res = await fetch(`/api/discounts/by-item?itemId=${encodeURIComponent(itemId)}`, {
-      cache: "no-store",
-    });
-    if (!res.ok) return [];
-    const data = await res.json().catch(() => ({ discounts: [] }));
-    const rows = Array.isArray(data?.discounts) ? data.discounts : [];
-    return rows.map((d: any) => ({
-      id: Number(d.id),
-      name: String(d.name),
-      type: d.type ?? d.discount_type,
-      value: Number(d.value),
-      startsAt: d.startsAt ?? d.starts_at ?? null,
-      endsAt: d.endsAt ?? d.ends_at ?? null,
-      stackable: Boolean(d.stackable),
-      couponCode: d.couponCode ?? d.coupon_code ?? null,
-      scope: (d.scope as "item" | "category") ?? "item",
-      appliesTo:
-        d.scope === "category" && d.categoryId
-          ? { categoryId: Number(d.categoryId) }
-          : { itemId: itemId },
-    }));
-  }
-
-  // Initial cart snapshot from server
+  // Initial cart snapshot from server (already discount-aware)
   useEffect(() => {
     dispatch(fetchCart());
   }, [dispatch]);
 
-  // Fetch discounts per itemId
-  useEffect(() => {
-    let cancelled = false;
-
-    const load = async () => {
-      const ids = Array.from(new Set(cartItems.map((i) => i.productId)));
-      if (ids.length === 0) {
-        if (!cancelled) setDiscountsMap({});
-        return;
-      }
-
-      const results: Array<[string, Discount[]]> = await Promise.all(
-        ids.map(async (id): Promise<[string, Discount[]]> => {
-          try {
-            const d = await fetchDiscountsForItem(id);
-            return [id, d];
-          } catch {
-            return [id, [] as Discount[]];
-          }
-        })
-      );
-
-      if (!cancelled) {
-        const map: Record<string, Discount[]> = {};
-        for (const [id, arr] of results) map[id] = arr;
-        setDiscountsMap(map);
-      }
-    };
-
-    load();
-    return () => {
-      cancelled = true;
-    };
-  }, [cartItems]);
-
-  // Compute discounted lines
+  // Discount-aware lines (effectivePrice/discounted come straight from the API)
   const lines = useMemo(() => {
     return cartItems.map((it) => {
       const unit = Number(it.price) || 0;
-      const discounts = discountsMap[it.productId] ?? [];
-      const { finalPrice, applicable } = pickDiscountsForProduct(
-        {
-          id: it.productId,
-          price: unit,
-        },
-        discounts
-      );
-      const discounted = applicable.length > 0 && finalPrice < unit;
+      const finalUnitPrice = Number(it.effectivePrice ?? unit);
+      const discounted = !!it.discounted && finalUnitPrice < unit;
       return {
         ...it,
         unitPrice: unit,
-        finalUnitPrice: discounted ? finalPrice : unit,
+        finalUnitPrice,
         discounted,
-        lineFinalTotal: (discounted ? finalPrice : unit) * it.qty,
+        lineFinalTotal: Number(it.effectiveLineTotal ?? finalUnitPrice * it.qty),
       };
     });
-  }, [cartItems, discountsMap]);
+  }, [cartItems]);
 
   const discountedSubtotal = useMemo(
     () => lines.reduce((sum, l) => sum + l.lineFinalTotal, 0),

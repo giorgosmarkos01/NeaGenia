@@ -10,22 +10,12 @@ import AddToCartButton from "@/components/client/AddProductCardToCartButton";
 import StockPill from "./StockPill";
 
 import type { ProductSummary } from "@/types/product";
-import type { Discount } from "@/types/discount";
-import { pickDiscountsForProduct } from "@/utils/discounts";
 
 interface ProductCardProps {
-  product: ProductSummary & {
-    // add these if you have them available; otherwise omit and it still works for item-scoped discounts
-    categoryId?: number;
-    categoryPath?: number[];
-  };
-  discounts?: Discount[]; // 👈 category (or mixed) discounts passed from ProductGrid
+  product: ProductSummary;
 }
 
-export default function ProductCard({
-  product,
-  discounts = [],
-}: ProductCardProps) {
+export default function ProductCard({ product }: ProductCardProps) {
   const [loading, setLoading] = useState(false);
   const dispatch = useDispatch();
   const { isSignedIn } = useAuth();
@@ -34,18 +24,8 @@ export default function ProductCard({
   const liked = wishlist.includes(product.id);
 
   const originalPrice = Number(product.price) || 0;
-
-  // Compute price after discounts for *this* product
-  const { finalPrice, applicable } = pickDiscountsForProduct(
-    {
-      id: product.id,
-      price: originalPrice,
-      categoryId: product.categoryId,
-      categoryPath: product.categoryPath,
-    },
-    discounts
-  );
-  const isDiscounted = applicable.length > 0 && finalPrice < originalPrice;
+  const finalPrice = product.isOnSale ? Number(product.effectivePrice) : originalPrice;
+  const isDiscounted = product.isOnSale;
 
   return (
     <div
