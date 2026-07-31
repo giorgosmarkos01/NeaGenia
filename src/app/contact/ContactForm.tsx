@@ -39,9 +39,9 @@ export default function ContactPage() {
           subject: form.subject,
           message: form.message,
           to_name: "Nea Genia Technologies",
-          to_email: "info@svkrobotics.com",
+          to_email: "info@neageniatechnologies.com",
         },
-        "itFqmuVTo9hyQGmL8" // public key απευθείας.  process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY!
+        process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY!
       );
 
       setStatus("success");
