@@ -59,7 +59,7 @@ export default function Footer() {
             className="mb-4 object-contain"
           />
           <p className="text-gray-600 text-sm leading-relaxed">
-            SVK Robotics is a company specializing in robotics and mechatronics
+            Nea Genia Technologies is a company specializing in robotics and mechatronics
             solutions, as well as selling robotics products through our e-shop.
             Our mission is to provide the best products with excellent customer
             service.
@@ -344,7 +344,7 @@ export default function Footer() {
       {/* Bottom Bar with Modals */}
       <div className="border-t border-gray-200 flex flex-col sm:flex-row justify-center items-center gap-4 py-4">
         <p className="text-center text-sm text-gray-500">
-          ©2025 SVK Robotics. All rights reserved.
+          ©2025 Nea Genia Technologies. All rights reserved.
         </p>
 
         <div className="flex gap-6">

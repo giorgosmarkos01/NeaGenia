@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import ContactForm from "./ContactForm";
 
 export const metadata: Metadata = {
-  title: "Contact Us | SVK ROBOTICS",
+  title: "Contact Us | NEA GENIA TECHNOLOGIES",
   description:
-    "Get in touch with the SVK ROBOTICS team for sales and technical support.",
+    "Get in touch with the NEA GENIA TECHNOLOGIES team for sales and technical support.",
 };
 
 export default function ContactPage() {

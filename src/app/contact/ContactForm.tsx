@@ -38,7 +38,7 @@ export default function ContactPage() {
           from_email: form.email,
           subject: form.subject,
           message: form.message,
-          to_name: "SVK Robotics",
+          to_name: "Nea Genia Technologies",
           to_email: "info@svkrobotics.com",
         },
         "itFqmuVTo9hyQGmL8" // public key απευθείας.  process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY!

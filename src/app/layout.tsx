@@ -17,7 +17,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "SVK ROBOTICS ESHOP",
+  title: "NEA GENIA TECHNOLOGIES ESHOP",
   description:
     "The best place to buy awesome products for robotics enthusiasts.",
 };

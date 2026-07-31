@@ -10,9 +10,9 @@ import ProductGrid, { ProductGridSkeleton } from "@/components/client/ProductGri
 import { getCategoryCounts } from "@/data/product";
 
 export const metadata: Metadata = {
-  title: "Products | SVK ROBOTICS",
+  title: "Products | NEA GENIA TECHNOLOGIES",
   description:
-    "Browse all SVK ROBOTICS products including robot kits, parts, accessories and educational kits.",
+    "Browse all Nea Genia Technologies products including robot kits, parts, accessories and educational kits.",
 };
 
 type SearchParams = { category?: string | string[] };

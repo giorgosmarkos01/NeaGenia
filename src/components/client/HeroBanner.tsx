@@ -10,11 +10,11 @@ import HeroBannerAnimation from "@/../public/lotties/HeroBanner.json";
 
 const slides = [
   {
-    title: "Discover SVK Robotics – Innovation in Education & Technology",
+    title: "Discover Nea Genia Technologies – Innovation in Education & Technology",
     subtitle: "Empowering the next generation of creators",
-    button1: "Visit SVK Robotics",
+    button1: "Visit Nea Genia Technologies",
     button2: "Explore More →",
-    link1: "https://svkrobotics.com",
+    link1: "https://neageniatechnologies.com",
     isLottie: true,
   },
   {

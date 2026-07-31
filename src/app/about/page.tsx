@@ -11,7 +11,7 @@ export default function AboutPage() {
       <Navbar />
       <main className="max-w-5xl mx-auto px-6 py-12 text-gray-800">
         <div className="flex flex-col md:flex-row items-center gap-6 mb-6">
-          <h1 className="text-4xl font-bold text-black">About SVK Robotics</h1>
+          <h1 className="text-4xl font-bold text-black">About Nea Genia Technologies</h1>
           <div className="w-32 h-32 md:w-40 md:h-40">
             <Lottie animationData={AboutAnimation} loop={true} />
           </div>
@@ -19,7 +19,7 @@ export default function AboutPage() {
 
         <section className="space-y-6 leading-relaxed">
           <p>
-            <strong>SVK Robotics </strong> is an innovative company focused on
+            <strong>Nea Genia Technologies </strong> is an innovative company focused on
             robotics and technology education. Our mission is to empower
             creativity, inspire innovation, and promote hands-on technical
             knowledge for the next generation of thinkers, makers, and problem
@@ -40,7 +40,7 @@ export default function AboutPage() {
           </p>
 
           <p>
-            At SVK Robotics, we believe education should be accessible, modern,
+            At Nea Genia Technologies, we believe education should be accessible, modern,
             and future-ready. That&apos;s why we continuously invest in
             innovation, educational resources, and partnerships with leading
             suppliers in the tech education space.

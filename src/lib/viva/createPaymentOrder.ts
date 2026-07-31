@@ -34,7 +34,7 @@ export async function createPaymentOrder(amount: number, customer: VivaCustomer)
     },
     body: JSON.stringify({
       amount, // integer in cents
-      customerTrns: "SVK Robotics Eshop Purchase",
+      customerTrns: "Nea Genia Technologies Eshop Purchase",
       customer: {
         fullName: customer.fullName,
         email: customer.email,

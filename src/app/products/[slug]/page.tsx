@@ -17,23 +17,23 @@ export async function generateMetadata(
     const item = await getItemDetailBySlug(slug);
     if (!item) {
       return {
-        title: `${slug} | SVK ROBOTICS`,
-        description: `Details and specifications for ${slug} from SVK ROBOTICS.`,
+        title: `${slug} | NEA GENIA TECHNOLOGIES`,
+        description: `Details and specifications for ${slug} from NEA GENIA TECHNOLOGIES.`,
       };
     }
     return {
-      title: `${item.name} | SVK ROBOTICS`,
+      title: `${item.name} | NEA GENIA TECHNOLOGIES`,
       description:
         item.descriptionShort ??
-        `Details and specifications for ${item.name} from SVK ROBOTICS.`,
+        `Details and specifications for ${item.name} from NEA GENIA TECHNOLOGIES.`,
       openGraph: {
         images: item.coverImage ? [item.coverImage] : [],
       },
     };
   } catch {
     return {
-      title: `${slug} | SVK ROBOTICS`,
-      description: `Details and specifications for ${slug} from SVK ROBOTICS.`,
+      title: `${slug} | NEA GENIA TECHNOLOGIES`,
+      description: `Details and specifications for ${slug} from NEA GENIA TECHNOLOGIES.`,
     };
   }
 }

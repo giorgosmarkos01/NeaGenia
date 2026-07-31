@@ -3,8 +3,8 @@ import type { Metadata } from "next";
 import Checkout from "./Checkout";
 
 // export const metadata: Metadata = {
-//   title: "Checkout | SVK ROBOTICS",
-//   description: "Complete your purchase with the SVK ROBOTICS team.",
+//   title: "Checkout | NEA GENIA TECHNOLOGIES",
+//   description: "Complete your purchase with the NEA GENIA TECHNOLOGIES team.",
 // };
 
 export default function CheckoutPage() {
