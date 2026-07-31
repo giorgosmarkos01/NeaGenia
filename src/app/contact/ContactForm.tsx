@@ -3,7 +3,6 @@
 import { useState } from "react";
 import Navbar from "@/components/client/Navbar";
 import Footer from "@/components/client/Footer";
-import emailjs from "@emailjs/browser";
 import Lottie from "lottie-react";
 import ContactAnimation from "@/../public/lotties/Contact.json";
 
@@ -30,25 +29,27 @@ export default function ContactPage() {
     setStatus("loading");
 
     try {
-      await emailjs.send(
-        process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID!,
-        process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID!,
-        {
-          from_name: form.name,
-          from_email: form.email,
+      const res = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: form.name,
+          email: form.email,
           subject: form.subject,
           message: form.message,
-          to_name: "Nea Genia Technologies",
-          to_email: "info@neageniatechnologies.com",
-        },
-        process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY!
-      );
+        }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || "Failed to send message");
+      }
 
       setStatus("success");
       setForm({ name: "", email: "", subject: "", message: "" });
       setTimeout(() => setStatus("idle"), 4000);
     } catch (err) {
-      console.error("EmailJS error:", err);
+      console.error("Contact form error:", err);
       setStatus("error");
       setTimeout(() => setStatus("idle"), 4000);
     }
