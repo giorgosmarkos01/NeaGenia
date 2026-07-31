@@ -73,10 +73,10 @@ export default function Navbar() {
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2">
             <Image
-              src="/logo.png"
-              alt="SVK Robotics"
-              width={100}
-              height={70}
+              src="/logo-horizontal.png"
+              alt="Nea Genia Technologies"
+              width={150}
+              height={40}
               className="rounded"
               priority
               style={{ height: "auto", width: "auto" }}

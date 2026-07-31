@@ -53,7 +53,7 @@ export default function Footer() {
         <div>
           <Image
             src="/logo.png"
-            alt="SVK Robotics Logo"
+            alt="Nea Genia Technologies Logo"
             width={96}
             height={96}
             className="mb-4 object-contain"
