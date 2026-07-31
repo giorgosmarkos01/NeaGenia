@@ -784,7 +784,7 @@ export default function CheckoutPage() {
                   disabled={
                     !agree || items.length === 0 || loading || couponApplying
                   }
-                  className="w-full rounded-md bg-blue-600 text-white py-3 font-medium hover:bg-blue-700 disabled:opacity-60 disabled:cursor-not-allowed transition"
+                  className="w-full rounded-md bg-[#F75807] text-white py-3 font-medium hover:bg-[#D24B06] disabled:opacity-60 disabled:cursor-not-allowed transition"
                 >
                   {loading ? "Placing order..." : "Order Now"}
                 </button>

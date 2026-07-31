@@ -83,7 +83,7 @@ export default function AddToCartButton({ product }: { product: ProductSummary }
                   flex items-center justify-center gap-2 
                   px-4 py-2 sm:px-5 sm:py-2 
                   text-sm sm:text-base font-semibold rounded-lg 
-                  bg-[#89CFF0] text-white hover:bg-[#72b8d6]
+                  bg-[#F75807] text-white hover:bg-[#D24B06]
                   cursor-pointer disabled:opacity-100 disabled:cursor-not-allowed
                 `}
                 initial={{ opacity: 0, scale: 0.95 }}
@@ -118,7 +118,7 @@ export default function AddToCartButton({ product }: { product: ProductSummary }
               >
                 <Link
                   href={`/products/${product.slug || product.id}`}
-                  className="px-4 py-2 text-sm font-medium rounded-lg bg-gray-800 text-white hover:bg-gray-900"
+                  className="px-4 py-2 text-sm font-medium rounded-lg bg-[#F75807] text-white hover:bg-[#D24B06]"
                 >
                   {detailsLabel}
                 </Link>
@@ -136,7 +136,7 @@ export default function AddToCartButton({ product }: { product: ProductSummary }
               <motion.button
                 onClick={handleMinus}
                 disabled={loading}
-                className="px-3 py-2 text-sm font-medium bg-[#89CFF0] text-white hover:bg-[#72b8d6] cursor-pointer disabled:opacity-100 disabled:cursor-not-allowed"
+                className="px-3 py-2 text-sm font-medium bg-[#F75807] text-white hover:bg-[#D24B06] cursor-pointer disabled:opacity-100 disabled:cursor-not-allowed"
                 whileTap={{ scale: 0.95 }}
                 aria-label="Decrease quantity"
               >
@@ -150,7 +150,7 @@ export default function AddToCartButton({ product }: { product: ProductSummary }
               <motion.button
                 onClick={handlePlus}
                 disabled={loading}
-                className="px-3 py-2 text-sm font-medium bg-[#89CFF0] text-white hover:bg-[#72b8d6] cursor-pointer disabled:opacity-100 disabled:cursor-not-allowed"
+                className="px-3 py-2 text-sm font-medium bg-[#F75807] text-white hover:bg-[#D24B06] cursor-pointer disabled:opacity-100 disabled:cursor-not-allowed"
                 whileTap={{ scale: 0.95 }}
                 aria-label="Increase quantity"
               >

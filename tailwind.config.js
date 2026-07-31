@@ -9,7 +9,7 @@ module.exports = {
       colors: {
         // δικό σου custom color
         primaryText: "#1a1a1a",
-        monkey: "#89cff0",
+        monkey: "#F75807",
       },
     },
   },

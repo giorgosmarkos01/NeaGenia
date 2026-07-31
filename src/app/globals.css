@@ -10,11 +10,11 @@
 @layer components {
   .add-button {
     @apply text-white disabled:opacity-60 disabled:cursor-not-allowed;
-    background-color: #7eccf0; /* default */
+    background-color: #F75807; /* default */
   }
 
   .add-button:hover {
-    background-color: #007bff; /* hover */
+    background-color: #D24B06; /* hover */
   }
   .title-of-the-product {
     @apply text-gray-900 font-semibold;

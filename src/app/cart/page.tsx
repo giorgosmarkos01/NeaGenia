@@ -228,7 +228,7 @@ export default function CartPage() {
               <div className="flex justify-center">
                 <Link
                   href="/checkout"
-                  className="px-8 py-3 bg-blue-600 text-white rounded-lg text-lg hover:bg-blue-700 transition"
+                  className="px-8 py-3 bg-[#F75807] text-white rounded-lg text-lg hover:bg-[#D24B06] transition"
                 >
                   Proceed to Checkout
                 </Link>
