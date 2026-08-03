@@ -88,7 +88,7 @@ export default function Navbar() {
             <Link
               href="/"
               className={cn(
-                "text-sm hover:text-blue-600 transition",
+                "text-sm hover:text-[#F75807] transition",
                 pathname === "/" ? "text-blue-600 font-medium" : "text-zinc-700"
               )}
             >
@@ -97,7 +97,7 @@ export default function Navbar() {
             <Link
               href="/products"
               className={cn(
-                "text-sm hover:text-blue-600 transition",
+                "text-sm hover:text-[#F75807] transition",
                 pathname === "/products"
                   ? "text-blue-600 font-medium"
                   : "text-zinc-700"
@@ -121,7 +121,7 @@ export default function Navbar() {
             <Link
               href="/about"
               className={cn(
-                "text-sm hover:text-blue-600 transition",
+                "text-sm hover:text-[#F75807] transition",
                 pathname === "/about"
                   ? "text-blue-600 font-medium"
                   : "text-zinc-700"
@@ -132,7 +132,7 @@ export default function Navbar() {
             <Link
               href="/contact"
               className={cn(
-                "text-sm hover:text-blue-600 transition",
+                "text-sm hover:text-[#F75807] transition",
                 pathname === "/contact"
                   ? "text-blue-600 font-medium"
                   : "text-zinc-700"
@@ -178,7 +178,7 @@ export default function Navbar() {
           </Link>
           <SignedOut>
             <SignInButton mode="modal">
-              <button className="hidden md:inline text-sm font-medium text-blue-500 hover:text-blue-600 transition">
+              <button className="hidden md:inline text-sm font-medium text-blue-500 hover:text-[#F75807] transition">
                 Sign in
               </button>
             </SignInButton>
