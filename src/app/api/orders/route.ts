@@ -10,6 +10,7 @@ import { getOrCreateCartBySession } from "@/lib/cartSession";
 import { auth } from "@clerk/nextjs/server";
 import { cookies } from "next/headers";
 import { getBoxNowPricing } from "@/lib/boxNowPricing";
+import { sendOrderConfirmationEmail } from "@/lib/orderConfirmation";
 type ShipCode = "ELTA" | "FEDEX" | "BOXNOW";
 
 function normShipping(s?: string): ShipCode {
@@ -344,6 +345,24 @@ export async function POST(req: Request) {
     await db.query(`DELETE FROM cart_items WHERE cart_id = ?`, [cartId]);
 
     await db.query("COMMIT");
+
+    // 9.5) Order confirmation email to the customer (best-effort, never blocks the response)
+    await sendOrderConfirmationEmail({
+      orderId: order_id,
+      customerName: customer_name,
+      customerEmail: email,
+      lines: lines.map((l) => ({
+        name: l.name,
+        qty: l.qty,
+        unitPrice: l.unitPrice,
+        variationNames: l.variations.length ? l.variations.map((v) => v.name).join(", ") : null,
+      })),
+      subtotal: discountedSubtotal,
+      shippingCost,
+      total,
+      shippingOption: ship,
+      address: { address, city, province, zip, country },
+    });
 
     // 10) Create Viva order using the server-trusted total
     const vivaResponse = await createPaymentOrder(Math.round(total * 100), {

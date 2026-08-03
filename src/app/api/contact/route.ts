@@ -2,7 +2,7 @@ export const runtime = "nodejs";
 
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import nodemailer from "nodemailer";
+import { getMailTransporter, escapeHtml } from "@/lib/mailer";
 
 const ContactSchema = z.object({
   name: z.string().trim().min(1, "Name is required").max(200),
@@ -10,15 +10,6 @@ const ContactSchema = z.object({
   subject: z.string().trim().min(1, "Subject is required").max(200),
   message: z.string().trim().min(1, "Message is required").max(5000),
 });
-
-function escapeHtml(s: string): string {
-  return s
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#039;");
-}
 
 export async function POST(req: Request) {
   const body = await req.json().catch(() => ({}));
@@ -30,16 +21,6 @@ export async function POST(req: Request) {
     );
   }
   const { name, email, subject, message } = parsed.data;
-
-  const transporter = nodemailer.createTransport({
-    host: process.env.SMTP_HOST,
-    port: Number(process.env.SMTP_PORT),
-    secure: process.env.SMTP_SECURE === "true",
-    auth: {
-      user: process.env.SMTP_USER,
-      pass: process.env.SMTP_PASS,
-    },
-  });
 
   const text = [
     `New contact form message`,
@@ -57,7 +38,7 @@ export async function POST(req: Request) {
   `.trim();
 
   try {
-    await transporter.sendMail({
+    await getMailTransporter().sendMail({
       from: process.env.MAIL_FROM,
       to: process.env.MAIL_TO,
       replyTo: email,
