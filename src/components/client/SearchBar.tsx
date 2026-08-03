@@ -63,7 +63,7 @@ export default function SearchBar() {
         onFocus={() => results.length > 0 && setOpen(true)}
         placeholder="Search products…"
         className="w-full rounded-xl border bg-white px-4 py-2.5 pr-10 text-sm text-black shadow-sm 
-          outline-none ring-0 placeholder:text-zinc-400 focus:border-blue-400 focus:ring-1 focus:ring-blue-400"
+          outline-none ring-0 placeholder:text-zinc-400 focus:border-[#F75807] focus:ring-1 focus:ring-[#F75807]"
       />
 
       {/* Right icon / loader */}
