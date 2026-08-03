@@ -66,7 +66,7 @@ export default function ContactPage() {
 
         {/* 👇 Contact Form */}
         <div className="text-black rounded-2xl shadow-lg p-8 w-full max-w-2xl border border-gray-200 bg-white">
-          <h2 className="text-3xl font-bold mb-2">Contact Us</h2>
+          <h2 className="text-3xl font-bold mb-2 text-[#062A56]">Contact Us</h2>
           <p className="text-gray-600 mb-8">
             Fill out the form and we’ll get back to you.
           </p>
@@ -81,7 +81,7 @@ export default function ContactPage() {
                 value={form.name}
                 onChange={handleChange}
                 required
-                className="w-full bg-white text-black py-3 px-4 rounded-lg border border-black focus:outline-none focus:ring-2 focus:ring-black transition-all"
+                className="w-full bg-white text-black py-3 px-4 rounded-lg border border-gray-300 focus:outline-none focus:border-[#F75807] focus:ring-2 focus:ring-[#F75807] transition-all"
               />
             </div>
 
@@ -94,7 +94,7 @@ export default function ContactPage() {
                 value={form.email}
                 onChange={handleChange}
                 required
-                className="w-full bg-white text-black py-3 px-4 rounded-lg border border-black focus:outline-none focus:ring-2 focus:ring-black transition-all"
+                className="w-full bg-white text-black py-3 px-4 rounded-lg border border-gray-300 focus:outline-none focus:border-[#F75807] focus:ring-2 focus:ring-[#F75807] transition-all"
               />
             </div>
 
@@ -107,7 +107,7 @@ export default function ContactPage() {
                 value={form.subject}
                 onChange={handleChange}
                 required
-                className="w-full bg-white text-black py-3 px-4 rounded-lg border border-black focus:outline-none focus:ring-2 focus:ring-black transition-all"
+                className="w-full bg-white text-black py-3 px-4 rounded-lg border border-gray-300 focus:outline-none focus:border-[#F75807] focus:ring-2 focus:ring-[#F75807] transition-all"
               />
             </div>
 
@@ -120,7 +120,7 @@ export default function ContactPage() {
                 value={form.message}
                 onChange={handleChange}
                 required
-                className="w-full bg-white text-black py-3 px-4 rounded-lg border border-black focus:outline-none focus:ring-2 focus:ring-black transition-all resize-none"
+                className="w-full bg-white text-black py-3 px-4 rounded-lg border border-gray-300 focus:outline-none focus:border-[#F75807] focus:ring-2 focus:ring-[#F75807] transition-all resize-none"
               />
             </div>
 
@@ -139,7 +139,7 @@ export default function ContactPage() {
             <button
               type="submit"
               disabled={status === "loading"}
-              className="bg-black hover:bg-gray-800 py-3 px-6 rounded-lg text-white font-bold transition-colors"
+              className="bg-[#F75807] hover:bg-[#D24B06] py-3 px-6 rounded-lg text-white font-bold transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
             >
               {status === "loading" ? "Sending..." : "Send Message"}
             </button>
