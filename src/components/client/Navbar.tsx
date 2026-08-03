@@ -89,7 +89,7 @@ export default function Navbar() {
               href="/"
               className={cn(
                 "text-sm hover:text-[#F75807] transition",
-                pathname === "/" ? "text-blue-600 font-medium" : "text-zinc-700"
+                pathname === "/" ? "text-[#062A56] font-medium" : "text-zinc-700"
               )}
             >
               Home
@@ -99,7 +99,7 @@ export default function Navbar() {
               className={cn(
                 "text-sm hover:text-[#F75807] transition",
                 pathname === "/products"
-                  ? "text-blue-600 font-medium"
+                  ? "text-[#062A56] font-medium"
                   : "text-zinc-700"
               )}
             >
@@ -123,7 +123,7 @@ export default function Navbar() {
               className={cn(
                 "text-sm hover:text-[#F75807] transition",
                 pathname === "/about"
-                  ? "text-blue-600 font-medium"
+                  ? "text-[#062A56] font-medium"
                   : "text-zinc-700"
               )}
             >
@@ -134,7 +134,7 @@ export default function Navbar() {
               className={cn(
                 "text-sm hover:text-[#F75807] transition",
                 pathname === "/contact"
-                  ? "text-blue-600 font-medium"
+                  ? "text-[#062A56] font-medium"
                   : "text-zinc-700"
               )}
             >
@@ -202,7 +202,7 @@ export default function Navbar() {
                 onClick={() => setOpen(false)}
                 className={cn(
                   "block rounded-lg px-3 py-2 text-sm hover:bg-zinc-50",
-                  pathname === "/" ? "text-blue-600" : "text-zinc-700"
+                  pathname === "/" ? "text-[#062A56]" : "text-zinc-700"
                 )}
               >
                 Home
@@ -214,7 +214,7 @@ export default function Navbar() {
                 onClick={() => setOpen(false)}
                 className={cn(
                   "block rounded-lg px-3 py-2 text-sm hover:bg-zinc-50",
-                  pathname === "/products" ? "text-blue-600" : "text-zinc-700"
+                  pathname === "/products" ? "text-[#062A56]" : "text-zinc-700"
                 )}
               >
                 Products
@@ -226,7 +226,7 @@ export default function Navbar() {
                 onClick={() => setOpen(false)}
                 className={cn(
                   "block rounded-lg px-3 py-2 text-sm hover:bg-zinc-50",
-                  pathname === "/about" ? "text-blue-600" : "text-zinc-700"
+                  pathname === "/about" ? "text-[#062A56]" : "text-zinc-700"
                 )}
               >
                 About
@@ -238,7 +238,7 @@ export default function Navbar() {
                 onClick={() => setOpen(false)}
                 className={cn(
                   "block rounded-lg px-3 py-2 text-sm hover:bg-zinc-50",
-                  pathname === "/contact" ? "text-blue-600" : "text-zinc-700"
+                  pathname === "/contact" ? "text-[#062A56]" : "text-zinc-700"
                 )}
               >
                 Contact
