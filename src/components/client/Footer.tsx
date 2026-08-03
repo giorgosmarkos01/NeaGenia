@@ -137,7 +137,7 @@ export default function Footer() {
               href="https://www.facebook.com/profile.php?id=61577812032078&locale=el_GR"
               target="_blank"
               rel="noopener noreferrer"
-              className="hover:text-blue-600"
+              className="hover:text-[#F75807]"
             >
               <FaFacebookF size={20} />
             </Link>
@@ -153,7 +153,7 @@ export default function Footer() {
               href="https://www.linkedin.com/company/svk-robotics/posts/?feedView=all"
               target="_blank"
               rel="noopener noreferrer"
-              className="hover:text-blue-700"
+              className="hover:text-[#F75807]"
             >
               <FaLinkedinIn size={20} />
             </Link>
