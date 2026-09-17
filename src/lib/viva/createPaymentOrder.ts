@@ -46,7 +46,7 @@ export async function createPaymentOrder(amount: number, customer: VivaCustomer)
       allowRecurring: false,
       paymentTimeout: 300,
       // make sure this is your prod domain in prod & demo domain in demo if needed
-      returnUrl: process.env.VIVA_RETURN_URL || "https://svkroboticstore.com/success",
+      returnUrl: process.env.VIVA_RETURN_URL || "https://neageniatechnologies.com/success",
     }),
   });
 

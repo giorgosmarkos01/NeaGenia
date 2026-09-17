@@ -1,6 +1,6 @@
 /** @type {import('next-sitemap').IConfig} */
 module.exports = {
-  siteUrl: "https://svkroboticstore.com",
+  siteUrl: "https://neageniatechnologies.com",
   generateRobotsTxt: true,
   sitemapSize: 7000,
   exclude: [
