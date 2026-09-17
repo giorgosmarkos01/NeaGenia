@@ -1,10 +1,86 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { STOCK_STATUSES, SELECTION_TYPES, DISCOUNT_TYPES } from "@/lib/productSchema";
 import { slugify } from "@/lib/slugify";
 import { useToast } from "./ToastProvider";
+
+/** Small helper button that uploads an image and inserts it as Markdown at the
+ *  textarea's current cursor position — lets admins add images between
+ *  paragraphs in the Full Description / Specifications fields. */
+function InsertImageButton({
+  textareaRef,
+  onInsert,
+}: {
+  textareaRef: React.RefObject<HTMLTextAreaElement | null>;
+  onInsert: (next: string) => void;
+}) {
+  const { showToast } = useToast();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [uploading, setUploading] = useState(false);
+
+  const handleFile = async (file: File) => {
+    setUploading(true);
+    try {
+      const fd = new FormData();
+      fd.set("image", file);
+      const res = await fetch("/api/admin/content-images", {
+        method: "POST",
+        body: fd,
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data.url) {
+        showToast(data.error || "Failed to upload image", "error");
+        return;
+      }
+
+      const textarea = textareaRef.current;
+      const markdown = `\n\n![](${data.url})\n\n`;
+      if (textarea) {
+        const start = textarea.selectionStart ?? textarea.value.length;
+        const end = textarea.selectionEnd ?? textarea.value.length;
+        const next = textarea.value.slice(0, start) + markdown + textarea.value.slice(end);
+        onInsert(next);
+        // restore focus/cursor after the inserted markdown, once React re-renders
+        requestAnimationFrame(() => {
+          textarea.focus();
+          const pos = start + markdown.length;
+          textarea.setSelectionRange(pos, pos);
+        });
+      } else {
+        onInsert(markdown);
+      }
+      showToast("Image inserted", "success");
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  return (
+    <>
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={(e) => {
+          const file = e.target.files?.[0];
+          e.target.value = "";
+          if (file) handleFile(file);
+        }}
+      />
+      <button
+        type="button"
+        disabled={uploading}
+        onClick={() => fileInputRef.current?.click()}
+        className="text-xs font-medium text-blue-600 hover:underline disabled:opacity-50"
+      >
+        {uploading ? "Uploading…" : "+ Insert image"}
+      </button>
+    </>
+  );
+}
 
 type Option = { id: number; name: string };
 
@@ -137,6 +213,9 @@ export default function ProductForm({
 
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+
+  const descriptionFullRef = useRef<HTMLTextAreaElement>(null);
+  const specificationsRef = useRef<HTMLTextAreaElement>(null);
 
   const newFilePreviews = useMemo(
     () => newFiles.map((f) => ({ file: f, url: URL.createObjectURL(f) })),
@@ -402,8 +481,12 @@ export default function ProductForm({
         />
       </div>
       <div>
-        <label className={labelClass}>Full Description (Markdown supported)</label>
+        <div className="flex items-center justify-between">
+          <label className={labelClass}>Full Description (Markdown supported)</label>
+          <InsertImageButton textareaRef={descriptionFullRef} onInsert={setDescriptionFull} />
+        </div>
         <textarea
+          ref={descriptionFullRef}
           rows={6}
           className={`${inputClass} resize-none`}
           value={descriptionFull}
@@ -411,8 +494,12 @@ export default function ProductForm({
         />
       </div>
       <div>
-        <label className={labelClass}>Specifications (Markdown supported)</label>
+        <div className="flex items-center justify-between">
+          <label className={labelClass}>Specifications (Markdown supported)</label>
+          <InsertImageButton textareaRef={specificationsRef} onInsert={setSpecifications} />
+        </div>
         <textarea
+          ref={specificationsRef}
           rows={4}
           className={`${inputClass} resize-none`}
           value={specifications}

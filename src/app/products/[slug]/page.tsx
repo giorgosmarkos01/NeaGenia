@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { getItemDetailBySlug } from "@/data/product";
+import { getItemDetailBySlug, getRelatedProducts } from "@/data/product";
 import ProductDetailsClient from "@/components/client/ProductDetailsClient";
 
 export const dynamic = "force-dynamic";
@@ -47,5 +47,7 @@ export default async function ProductPage(
   const item = await getItemDetailBySlug(slug);
   if (!item) notFound();               // <-- narrow here
 
-  return <ProductDetailsClient item={item} />; // item is ProductDetail now
+  const relatedProducts = await getRelatedProducts(item.categoryId, item.id, 4);
+
+  return <ProductDetailsClient item={item} relatedProducts={relatedProducts} />; // item is ProductDetail now
 }

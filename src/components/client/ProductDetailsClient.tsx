@@ -10,8 +10,9 @@ import { titleCaseFromSlug } from "@/lib/titleCaseFromSlug";
 import StockPill from "@/components/client/StockPill";
 import Image from "next/image";
 import AddProductToCartButton from "./AddProductToCartButton";
+import ProductCard from "./ProductCard";
 import Link from "next/link";
-import type { ProductDetail } from "@/types/product";
+import type { ProductDetail, ProductSummary } from "@/types/product";
 import rehypeRaw from "rehype-raw";
 
 const fallbackImage = "/logo.png";
@@ -52,7 +53,13 @@ const markdownComponents: Components = {
   },
 };
 
-export default function ProductDetailsClient({ item }: { item: ProductDetail }) {
+export default function ProductDetailsClient({
+  item,
+  relatedProducts = [],
+}: {
+  item: ProductDetail;
+  relatedProducts?: ProductSummary[];
+}) {
   const [selectedImage, setSelectedImage] = useState<string>(
     item.coverImage || fallbackImage
   );
@@ -380,6 +387,18 @@ export default function ProductDetailsClient({ item }: { item: ProductDetail }) 
           </div>
         </div>
       </div>
+
+      {relatedProducts.length > 0 && (
+        <div className="bg-white max-w-7xl mx-auto px-6 pb-12">
+          <hr className="mb-8" />
+          <h2 className="text-2xl font-bold text-black mb-6">You may also like</h2>
+          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {relatedProducts.map((p) => (
+              <ProductCard key={p.id} product={p} />
+            ))}
+          </div>
+        </div>
+      )}
 
       <Footer />
     </>

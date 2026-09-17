@@ -126,6 +126,22 @@ export async function fetchProductsByCategory(
   return withDiscounts(rows.map(normalizeSummaryRow));
 }
 
+export async function fetchRelatedProducts(
+  categoryId: number | null,
+  excludeId: string,
+  limit = 4
+): Promise<ProductSummary[]> {
+  if (!categoryId) return [];
+  const rows = await queryRows<ProductSummaryRow>(
+    `${BASE_SELECT}
+     WHERE i.category_id = ? AND i.id <> ?
+     ORDER BY i.created_at DESC
+     LIMIT ?`,
+    [categoryId, excludeId, limit]
+  );
+  return withDiscounts(rows.map(normalizeSummaryRow));
+}
+
 /* -------- Cached getters (10 min) -------- */
 
 export async function getProductsAll(limit = 24) {
@@ -155,6 +171,20 @@ export async function getProductsByCategory(category: string, limit = 24) {
   const cached = unstable_cache(
     () => fetchProductsByCategory(key, limit),
     ["products-by-category", key, String(limit)],
+    { revalidate: 600, tags: ["products"] }
+  );
+  return cached();
+}
+
+export async function getRelatedProducts(
+  categoryId: number | null,
+  excludeId: string,
+  limit = 4
+) {
+  if (!categoryId) return [];
+  const cached = unstable_cache(
+    () => fetchRelatedProducts(categoryId, excludeId, limit),
+    ["products-related", String(categoryId), excludeId, String(limit)],
     { revalidate: 600, tags: ["products"] }
   );
   return cached();

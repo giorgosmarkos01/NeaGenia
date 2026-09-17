@@ -7,11 +7,12 @@ cloudinary.config({
 });
 
 const FOLDER = "svkeshop/items";
+const CONTENT_FOLDER = "svkeshop/content";
 
-function uploadBuffer(buffer: Buffer, publicId: string): Promise<string> {
+function uploadBuffer(buffer: Buffer, publicId: string, folder = FOLDER): Promise<string> {
   return new Promise((resolve, reject) => {
     const stream = cloudinary.uploader.upload_stream(
-      { folder: FOLDER, public_id: publicId, overwrite: false },
+      { folder, public_id: publicId, overwrite: false },
       (error, result) => {
         if (error || !result) return reject(error ?? new Error("Cloudinary upload failed"));
         resolve(result.secure_url);
@@ -19,6 +20,14 @@ function uploadBuffer(buffer: Buffer, publicId: string): Promise<string> {
     );
     stream.end(buffer);
   });
+}
+
+/** Uploads a single image meant to be embedded inline in a product's markdown
+ *  description/specifications (not part of the product's own image gallery). */
+export async function uploadContentImage(file: File): Promise<string> {
+  const buffer = Buffer.from(await file.arrayBuffer());
+  const publicId = `content-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+  return uploadBuffer(buffer, publicId, CONTENT_FOLDER);
 }
 
 /** Uploads image files to Cloudinary and returns their public URLs. */
