@@ -48,12 +48,18 @@ export default async function ProductPage(
   if (!item) notFound();               // <-- narrow here
 
   let relatedProducts: Awaited<ReturnType<typeof getRelatedProducts>> = [];
+  let debugInfo = "";
   try {
     relatedProducts = await getRelatedProducts(item.categoryId, item.id, 4);
-    console.error("[DEBUG related]", { categoryId: item.categoryId, itemId: item.id, count: relatedProducts.length });
+    debugInfo = `categoryId=${item.categoryId} itemId=${item.id} count=${relatedProducts.length}`;
   } catch (e) {
-    console.error("[DEBUG related] ERROR", e);
+    debugInfo = `ERROR: ${e instanceof Error ? e.message + " | " + e.stack : String(e)}`;
   }
 
-  return <ProductDetailsClient item={item} relatedProducts={relatedProducts} />; // item is ProductDetail now
+  return (
+    <>
+      <div dangerouslySetInnerHTML={{ __html: `<!-- DEBUG-RELATED: ${debugInfo.replace(/-->/g, "")} -->` }} />
+      <ProductDetailsClient item={item} relatedProducts={relatedProducts} />
+    </>
+  ); // item is ProductDetail now
 }
