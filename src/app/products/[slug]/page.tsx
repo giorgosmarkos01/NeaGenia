@@ -47,19 +47,7 @@ export default async function ProductPage(
   const item = await getItemDetailBySlug(slug);
   if (!item) notFound();               // <-- narrow here
 
-  let relatedProducts: Awaited<ReturnType<typeof getRelatedProducts>> = [];
-  let debugInfo = "";
-  try {
-    relatedProducts = await getRelatedProducts(item.categoryId, item.id, 4);
-    debugInfo = `categoryId=${item.categoryId} itemId=${item.id} count=${relatedProducts.length}`;
-  } catch (e) {
-    debugInfo = `ERROR: ${e instanceof Error ? e.message + " | " + e.stack : String(e)}`;
-  }
+  const relatedProducts = await getRelatedProducts(item.categoryId, item.id, 4);
 
-  return (
-    <>
-      <div dangerouslySetInnerHTML={{ __html: `<!-- DEBUG-RELATED: ${debugInfo.replace(/-->/g, "")} -->` }} />
-      <ProductDetailsClient item={item} relatedProducts={relatedProducts} />
-    </>
-  ); // item is ProductDetail now
+  return <ProductDetailsClient item={item} relatedProducts={relatedProducts} />; // item is ProductDetail now
 }
